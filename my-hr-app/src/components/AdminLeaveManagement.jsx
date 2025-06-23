@@ -1,0 +1,185 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { getCookie } from '../utils/crsf'; 
+
+export default function AdminLeaveManagement() {
+    const [leaveRequests, setLeaveRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState(null); 
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isAuthenticated || (user && user.role !== 'admin')) {
+            navigate('/login');
+            return;
+        }
+        fetchLeaveRequests();
+    }, [isAuthenticated, user, navigate]);
+
+    const fetchLeaveRequests = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const response = await fetch('http://localhost:8000/api/admin/leave-requests/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(`Failed to fetch all leave requests: ${errorData.detail || response.statusText}`);
+            }
+
+            const data = await response.json();
+            setLeaveRequests(data);
+        } catch (err) {
+            console.error("Error fetching admin leave requests:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateStatus = async (id, newStatus, comments = '') => {
+        setMessage(null);
+        setError(null);
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const response = await fetch(`http://localhost:8000/api/admin/leave-requests/${id}/`, {
+                method: 'PATCH', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ status: newStatus, comments: comments }),
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(`Failed to update leave request status: ${errorData.detail || response.statusText}`);
+            }
+
+            setMessage(`Leave request status updated to ${newStatus} successfully!`);
+            fetchLeaveRequests(); 
+        } catch (err) {
+            console.error("Error updating leave request status:", err);
+            setError(err.message);
+        }
+    };
+
+    const handleDeleteRequest = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this leave request? This action cannot be undone.')) {
+            return;
+        }
+        setMessage(null);
+        setError(null);
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const response = await fetch(`http://localhost:8000/api/admin/leave-requests/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(`Failed to delete leave request: ${errorData.detail || response.statusText}`);
+            }
+
+            setMessage('Leave request deleted successfully!');
+            fetchLeaveRequests(); 
+        } catch (err) {
+            console.error("Error deleting leave request:", err);
+            setError(err.message);
+        }
+    };
+
+    if (loading) return <p className="loading-message">Loading all leave requests...</p>;
+    if (error) return <p className="error-message">Error: {error}</p>;
+    if (!isAuthenticated || (user && user.role !== 'admin')) return null; 
+
+    return (
+        <div className="dashboard-container">
+            <h1 className="page-title">Manage Leave Requests (Admin)</h1>
+
+            {message && (
+                <div className={`message-container ${error ? 'error' : 'success'}`}>
+                    {message}
+                </div>
+            )}
+
+            {leaveRequests.length === 0 ? (
+                <p className="no-records-message">No leave requests found.</p>
+            ) : (
+                <div className="table-container">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Period</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Approved By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {leaveRequests.map(request => (
+                                <tr key={request.id}>
+                                    <td data-label="ID">{request.id}</td>
+                                    <td data-label="Employee">{request.employee_username}</td>
+                                    <td data-label="Type">{request.leave_type}</td>
+                                    <td data-label="Period">{request.start_date} to {request.end_date}</td>
+                                    <td data-label="Reason">{request.reason}</td>
+                                    <td data-label="Status">{request.status}</td>
+                                    <td data-label="Requested">{new Date(request.requested_at).toLocaleDateString()}</td>
+                                    <td data-label="Approved By">{request.approved_by_username || 'N/A'}</td>
+                                    <td data-label="Actions">
+                                        {request.status === 'Pending' && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleUpdateStatus(request.id, 'Approved')}
+                                                    className="approve-button mr-2"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleUpdateStatus(request.id, 'Rejected')}
+                                                    className="cancel-button mr-2"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </>
+                                        )}
+                                        {(request.status === 'Approved' || request.status === 'Rejected' || request.status === 'Cancelled') && (
+                                            <button
+                                                onClick={() => handleDeleteRequest(request.id)}
+                                                className="cancel-button"
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+}
