@@ -40,7 +40,7 @@ export default function Login() {
     try {
         const csrfToken = getCookie("csrftoken");
 
-        const response = await fetch("https://hr-backend-xs34.onrender.com/login", {
+        const response = await fetch("https://hr-backend-xs34.onrender.com/login/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
