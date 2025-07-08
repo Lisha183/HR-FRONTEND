@@ -24,7 +24,7 @@ export default function Login() {
   const { loginUser } = useAuth();
 
   useEffect(() => {
-    fetch("http://hr-backend-xs34.onrender.com/csrf/", {
+    fetch("http://hr-backend-xs34.onrender.com/api/csrf/", {
       credentials: "include",
     });
   }, []);
