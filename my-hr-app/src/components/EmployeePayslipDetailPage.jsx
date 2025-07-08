@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { getCookie } from '../utils/crsf';
 
-function EmployeePayslipDetailPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+function EmployeePayslipDetailPage({ payslipId, onBack }) {
+  const id = payslipId;
+  const navigate = useNavigate(); 
   const { user } = useContext(AuthContext);
   const [payslip, setPayslip] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,8 +13,6 @@ function EmployeePayslipDetailPage() {
 
   useEffect(() => {
     async function fetchPayslipDetail() {
-
-      
       try {
         setLoading(true);
         setError(null);
@@ -91,37 +89,38 @@ function EmployeePayslipDetailPage() {
 
 
   return (
-    <div className="payslip-detail-container">
-      <h2>Payslip for {payslip.employee_details?.username || 'N/A'}</h2> 
-      <div className="payslip-info-section">
-        <h3>Pay Period</h3>
-        <p><span>From:</span> <span>{payslip.pay_period_start}</span></p>
-        <p><span>To:</span> <span>{payslip.pay_period_end}</span></p>
-        <p><span>Payout Date:</span> <span>{payslip.payout_date}</span></p> 
-      </div>
+    <div className="payslip-detail-page-wrapper">
+      <div className="payslip-detail-main-card">
+        <h1 className="payslip-detail-page-title">Payslip for {payslip.employee_details?.username || 'N/A'}</h1> 
+        
+        <div className="payslip-info-section">
+          <h3 className="payslip-section-title">Pay Period</h3>
+          <p><span>From:</span> <span className="payslip-value">{payslip.pay_period_start}</span></p>
+          <p><span>To:</span> <span className="payslip-value">{payslip.pay_period_end}</span></p>
+          <p><span>Payout Date:</span> <span className="payslip-value">{payslip.payout_date}</span></p> 
+        </div>
 
-      <div className="payslip-info-section">
-        <h3>Earnings</h3>
-        <p><span>Basic Salary:</span> <span>{formatCurrency(payslip.basic_salary)}</span></p>
-        {payslip.allowances > 0 && <p><span>Allowances:</span> <span>{formatCurrency(payslip.allowances)}</span></p>}
-        {payslip.bonuses > 0 && <p><span>Bonuses:</span> <span>{formatCurrency(payslip.bonuses)}</span></p>}
-      </div>
+        <div className="payslip-info-section">
+          <h3 className="payslip-section-title">Earnings</h3>
+          <p><span>Basic Salary:</span> <span className="payslip-value">{formatCurrency(payslip.basic_salary)}</span></p>
+          {payslip.allowances > 0 && <p><span>Allowances:</span> <span className="payslip-value">{formatCurrency(payslip.allowances)}</span></p>}
+          {payslip.bonuses > 0 && <p><span>Bonuses:</span> <span className="payslip-value">{formatCurrency(payslip.bonuses)}</span></p>}
+        </div>
 
-      <div className="payslip-info-section">
-        <h3>Deductions</h3>
-        <p><span>Tax Deduction:</span> <span>{formatCurrency(payslip.tax_deduction)}</span></p>
-        <p><span>Social Security Deduction:</span> <span>{formatCurrency(payslip.social_security_deduction)}</span></p>
-        <p><span>Other Deductions:</span> <span>{formatCurrency(payslip.other_deductions)}</span></p>
-      </div>
+        <div className="payslip-info-section">
+          <h3 className="payslip-section-title">Deductions</h3>
+          <p><span>Tax Deduction:</span> <span className="payslip-value">{formatCurrency(payslip.tax_deduction)}</span></p>
+          <p><span>Social Security Deduction:</span> <span className="payslip-value">{formatCurrency(payslip.social_security_deduction)}</span></p>
+          <p><span>Other Deductions:</span> <span className="payslip-value">{formatCurrency(payslip.other_deductions)}</span></p>
+        </div>
 
-      <div className="payslip-summary-section">
-        <h3>Summary</h3>
-        <p><span>Gross Pay:</span> <span>{formatCurrency(payslip.gross_pay)}</span></p>
-        <p><span>Total Deductions:</span> <span>{formatCurrency(payslip.total_deductions || totalDeductionsCalculated)}</span></p>
-        <p className="net-pay"><span>Net Pay:</span> <span>{formatCurrency(payslip.net_pay)}</span></p>
+        <div className="payslip-summary-section">
+          <h3 className="payslip-section-title">Summary</h3>
+          <p><span>Gross Pay:</span> <span className="payslip-value">{formatCurrency(payslip.gross_pay)}</span></p>
+          <p><span>Total Deductions:</span> <span className="payslip-value">{formatCurrency(payslip.total_deductions || totalDeductionsCalculated)}</span></p>
+          <p className="net-pay"><span>Net Pay:</span> <span className="payslip-value">{formatCurrency(payslip.net_pay)}</span></p>
+        </div>
       </div>
-
-      <button onClick={() => navigate('/employee/payslips')} className="back-button">Back to All Payslips</button>
     </div>
   );
 }

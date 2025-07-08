@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getCookie } from '../utils/crsf'; 
+import { getCookie } from '../utils/crsf';
+
 
 export default function AdminLeaveManagement() {
     const [leaveRequests, setLeaveRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [message, setMessage] = useState(null); 
+    const [message, setMessage] = useState(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState(null);
+    const [showConfirm, setShowConfirm] = useState(false);
+
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
@@ -54,7 +58,7 @@ export default function AdminLeaveManagement() {
         try {
             const csrftoken = getCookie('csrftoken');
             const response = await fetch(`http://localhost:8000/api/admin/leave-requests/${id}/`, {
-                method: 'PATCH', 
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken,
@@ -69,7 +73,7 @@ export default function AdminLeaveManagement() {
             }
 
             setMessage(`Leave request status updated to ${newStatus} successfully!`);
-            fetchLeaveRequests(); 
+            fetchLeaveRequests();
         } catch (err) {
             console.error("Error updating leave request status:", err);
             setError(err.message);
@@ -77,9 +81,6 @@ export default function AdminLeaveManagement() {
     };
 
     const handleDeleteRequest = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this leave request? This action cannot be undone.')) {
-            return;
-        }
         setMessage(null);
         setError(null);
         try {
@@ -98,7 +99,9 @@ export default function AdminLeaveManagement() {
             }
 
             setMessage('Leave request deleted successfully!');
-            fetchLeaveRequests(); 
+            setPendingDeleteId(null);
+            setShowConfirm(false);
+            fetchLeaveRequests();
         } catch (err) {
             console.error("Error deleting leave request:", err);
             setError(err.message);
@@ -106,80 +109,89 @@ export default function AdminLeaveManagement() {
     };
 
     if (loading) return <p className="loading-message">Loading all leave requests...</p>;
-    if (error) return <p className="error-message">Error: {error}</p>;
-    if (!isAuthenticated || (user && user.role !== 'admin')) return null; 
+    if (!isAuthenticated || (user && user.role !== 'admin')) return null;
 
     return (
-        <div className="dashboard-container">
-            <h1 className="page-title">Manage Leave Requests (Admin)</h1>
+        <div className="leave-page-wrapper">
+            <div className="leave-main-card">
+                <h1 className="leave-page-title">Manage Leave Requests (Admin)</h1>
+                {showConfirm && (
+                    <div className="custom-confirm-box">
+                        <p>Are you sure you want to delete this leave request? This action cannot be undone.</p>
+                        <div className="confirm-actions">
+                            <button onClick={() => handleDeleteRequest(pendingDeleteId)} className="confirm-button danger">Yes, Delete</button>
+                            <button onClick={() => { setPendingDeleteId(null); setShowConfirm(false); }} className="cancel-button">Cancel</button>
+                        </div>
+                    </div>
+                )}
 
-            {message && (
-                <div className={`message-container ${error ? 'error' : 'success'}`}>
-                    {message}
-                </div>
-            )}
+                {(message || error) && (
+                    <div className={`message-container ${error ? 'error' : 'success'}`}>{message || error}</div>
+                )}
 
-            {leaveRequests.length === 0 ? (
-                <p className="no-records-message">No leave requests found.</p>
-            ) : (
-                <div className="table-container">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Employee</th>
-                                <th>Type</th>
-                                <th>Period</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Requested</th>
-                                <th>Approved By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {leaveRequests.map(request => (
-                                <tr key={request.id}>
-                                    <td data-label="ID">{request.id}</td>
-                                    <td data-label="Employee">{request.employee_username}</td>
-                                    <td data-label="Type">{request.leave_type}</td>
-                                    <td data-label="Period">{request.start_date} to {request.end_date}</td>
-                                    <td data-label="Reason">{request.reason}</td>
-                                    <td data-label="Status">{request.status}</td>
-                                    <td data-label="Requested">{new Date(request.requested_at).toLocaleDateString()}</td>
-                                    <td data-label="Approved By">{request.approved_by_username || 'N/A'}</td>
-                                    <td data-label="Actions">
-                                        {request.status === 'Pending' && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleUpdateStatus(request.id, 'Approved')}
-                                                    className="approve-button mr-2"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => handleUpdateStatus(request.id, 'Rejected')}
-                                                    className="cancel-button mr-2"
-                                                >
-                                                    Reject
-                                                </button>
-                                            </>
-                                        )}
-                                        {(request.status === 'Approved' || request.status === 'Rejected' || request.status === 'Cancelled') && (
-                                            <button
-                                                onClick={() => handleDeleteRequest(request.id)}
-                                                className="cancel-button"
-                                            >
-                                                Delete
-                                            </button>
-                                        )}
-                                    </td>
+                {leaveRequests.length === 0 ? (
+                    <p className="no-records-message">No leave requests found.</p>
+                ) : (
+                    <div className="leave-table-container">
+                        <table className="leave-data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Period</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Requested</th>
+                                    <th>Approved By</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </thead>
+                            <tbody>
+                                {leaveRequests.map(request => (
+                                    <tr key={request.id}>
+                                        <td>{request.id}</td>
+                                        <td>{request.employee_username}</td>
+                                        <td>{request.leave_type}</td>
+                                        <td>{request.start_date} to {request.end_date}</td>
+                                        <td>{request.reason}</td>
+                                        <td>
+                                            <span className={`status-badge status-${request.status.toLowerCase().replace(/\s/g, '-')}`}>
+                                                {request.status}
+                                            </span>
+                                        </td>
+                                        <td>{new Date(request.requested_at).toLocaleDateString()}</td>
+                                        <td>{request.approved_by_username || 'N/A'}</td>
+                                        <td>
+                                            {request.status === 'Pending' && (
+                                                <>
+                                                    <button onClick={() => handleUpdateStatus(request.id, 'Approved')} className="action-button approve-action">
+                                                        Approve
+                                                    </button>
+                                                    <button onClick={() => handleUpdateStatus(request.id, 'Rejected')} className="action-button reject-action">
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                            {(request.status === 'Approved' || request.status === 'Rejected' || request.status === 'Cancelled') && (
+                                                <button
+                                                    onClick={() => {
+                                                        setPendingDeleteId(request.id);
+                                                        setShowConfirm(true);
+                                                    }}
+                                                    className="action-button delete-action"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCookie } from '../utils/crsf'; 
+import { getCookie }  from '../utils/crsf'; 
 
 export const AuthContext = createContext(null);
 
@@ -8,11 +8,12 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [role, setRole] = useState(null);
+    const [loadingAuth, setLoadingAuth] = useState(true); 
     const navigate = useNavigate();
 
     const fetchUserDetails = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/user/', {
+            const response = await fetch('http://localhost:8000/api/user/me/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,6 +48,8 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(false);
             setRole(null);
             return null;
+        } finally {
+            setLoadingAuth(false); 
         }
     };
 
@@ -54,6 +57,7 @@ export const AuthProvider = ({ children }) => {
         console.log("AuthContext: Initializing/Checking auth state from useEffect (once on mount).");
         fetchUserDetails().then(userRole => {
             const currentPath = window.location.pathname;
+
             if (userRole === 'admin' && (currentPath === '/login' || currentPath === '/')) {
                 console.log("AuthContext: Initial session - redirecting Admin to /admin-dashboard.");
                 navigate('/admin-dashboard');
@@ -72,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
         const currentPath = window.location.pathname;
         if (isAuthenticated && (role === 'admin' || role === 'employee') && currentPath === '/login') {
-            if (role === 'admin') { 
+            if (role === 'admin') {
                 console.log("AuthContext state change: Redirecting Admin from /login to /admin-dashboard.");
                 navigate('/admin-dashboard');
             } else if (role === 'employee') {
@@ -88,6 +92,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
         setRole(userData.role); 
+        setLoadingAuth(false); 
         console.log("AuthContext: State updated after loginUser.");
     };
 
@@ -106,8 +111,9 @@ export const AuthProvider = ({ children }) => {
                 setUser(null);
                 setIsAuthenticated(false);
                 setRole(null);
+                setLoadingAuth(false); 
                 console.log('Successfully logged out.');
-                navigate('/login'); 
+                navigate('/login');
             } else {
                 const errorData = await response.json();
                 console.error('Logout failed:', errorData.detail);
@@ -119,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, role, loginUser, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, role, loginUser, logout, loadingAuth }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,65 +1,228 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import AdminSelfAssessmentManagement from './AdminSelfAssessmentManagement';
 import AdminAttendanceReport from './AdminAttendanceReport';
+import AdminEmployeeProfilesPage from './AdminEmployeeProfilesPage';
+import AdminDepartmentsPage from './AdminDepartmentsPage';
+import AdminLeaveManagement from './AdminLeaveManagement';
+import AdminPayrollManagement from './AdminPayrollManagement';
+import AdminUserApprovalPage from './AdminUserApprovalPage';
+import AdminMeetingSlotManagement from './AdminMeetingSlotManagement';
+import AdminSidebar from './AdminSidebar';
+import AdminSelfAssessmentReviewForm from './AdminSelfAssessmentReviewForm'; 
 
-function AdminDashboard() {
-    const { isAuthenticated, user } = useAuth();
-    const navigate = useNavigate();
-    React.useEffect(() => {
-        if (!isAuthenticated || (user && user.role !== 'admin')) {
-            navigate('/login');
-        }
-    }, [isAuthenticated, user, navigate]);
 
-    if (!isAuthenticated || (user && user.role !== 'admin')) {
-        return null;
-    }
 
-    return (
-        <div className="dashboard-container">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
-            <AdminAttendanceReport />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-3">Manage Employees</h2>
-                    <p className="text-gray-600 mb-4">View, create, and manage employee profiles and their departments.</p>
-                    <button
-                        onClick={() => navigate('/admin/employee-profiles')} 
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-2"
-                    >
-                        Manage Profiles
-                    </button>
-                    <button
-                        onClick={() => navigate('/admin/departments')} 
-                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                    >
-                        Manage Departments
-                    </button>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-3">Leave Approvals</h2>
-                    <p className="text-gray-600 mb-4">Review and approve employee leave requests.</p>
-                    <button
-                        onClick={() => navigate('/admin/leave-management')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        Manage Leaves
-                    </button>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-3">Payroll Management</h2>
-                    <p className="text-gray-600 mb-4">Generate and manage payrolls.</p>
-                    <button
-                        onClick={() => navigate('/admin/payroll-management')}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                    >
-                        Manage Payrolls
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+function getCookie(name) {
+  const cookieValue = document.cookie
+    .split("; ")
+    .find(row => row.startsWith(name + "="));
+  return cookieValue ? decodeURIComponent(cookieValue.split("=")[1]) : null;
 }
 
-export default AdminDashboard;
+export default function AdminDashboard() {
+  const [selectedPayslipId, setSelectedPayslipId] = useState(null);
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [stats, setStats] = useState({ employees: 0, departments: 0, leaves: 0 });
+  const [date, setDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || (user && user.role !== 'admin')) {
+      navigate('/login');
+      return;
+    }
+    fetchCounts();
+  }, [isAuthenticated, user, navigate]);
+
+  const fetchCounts = async () => {
+    try {
+      const csrfToken = getCookie("csrftoken");
+
+      const [employeesRes, departmentsRes, leavesRes] = await Promise.all([
+        fetch("http://localhost:8000/api/employee-profiles/", {
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": csrfToken,
+          },
+        }),
+        fetch("http://localhost:8000/api/departments/", {
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": csrfToken,
+          },
+        }),
+        fetch("http://localhost:8000/api/leave-requests/", {
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": csrfToken,
+          },
+        }),
+      ]);
+
+      if (!employeesRes.ok || !departmentsRes.ok || !leavesRes.ok) {
+        throw new Error("Failed to fetch counts");
+      }
+
+      const employees = await employeesRes.json();
+      const departments = await departmentsRes.json();
+      const leaves = await leavesRes.json();
+
+      setStats({
+        employees: employees.length,
+        departments: departments.length,
+        leaves: leaves.length,
+      });
+    } catch (error) {
+      console.error("Error fetching counts:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
+  const renderContent = () => {
+    if (activeTab.startsWith('assessment-review-')) {
+      const assessmentId = activeTab.split('-')[2];
+      return (
+        <AdminSelfAssessmentReviewForm
+          assessmentId={assessmentId}
+          onBack={() => setActiveTab('self-assessment')}
+        />
+      );
+    }
+  
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <>
+            <h1>Admin Dashboard</h1>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ ...cardStyle, flex: '1 1 250px' }}>Employees: {stats.employees}</div>
+              <div style={{ ...cardStyle, flex: '1 1 250px' }}>Departments: {stats.departments}</div>
+              <div style={{ ...cardStyle, flex: '1 1 250px' }}>Leave Requests: {stats.leaves}</div>
+            </div>
+
+            <div style={{ padding: '1rem', background: '#fff', borderRadius: '8px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', maxWidth: '400px' }}>
+              <h3>Calendar</h3>
+              <Calendar onChange={setDate} value={date} />
+            </div>
+
+            <div style={{ marginTop: '2rem' }}>
+              <AdminUserApprovalPage />
+            </div>
+          </>
+        );
+      case 'profiles':
+        return <AdminEmployeeProfilesPage search={searchQuery} />;
+      case 'departments':
+        return <AdminDepartmentsPage search={searchQuery} />;
+      case 'leave':
+        return <AdminLeaveManagement search={searchQuery} />;
+      case 'payroll':
+        return <AdminPayrollManagement />;
+        case 'self-assessment':
+          return (
+            <AdminSelfAssessmentManagement
+              onViewAssessment={(id) => setActiveTab(`assessment-review-${id}`)}
+            />
+          );
+        
+      case 'attendance-report':
+        return <AdminAttendanceReport />;
+      case 'meetingSlots':
+        return <AdminMeetingSlotManagement />;
+      default:
+        return <h2>Unknown section</h2>;
+    }
+  };
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          minHeight: '100vh',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        <AdminSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLogout={handleLogout}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+        {isSidebarOpen && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              zIndex: 1000,
+            }}
+          />
+        )}
+        <main
+          style={{
+            flex: 1,
+            padding: '2rem',
+            background: '#f5f5f5',
+            minHeight: '100vh',
+            marginLeft: '70px',
+            transition: 'margin-left 0.3s ease',
+            overflowX: 'auto',
+          }}
+        >        
+
+          {renderContent()}
+        </main>
+      </div>
+
+      <style>
+        {`
+          @media (max-width: 768px) {
+            main {
+              margin-left: 0 !important;
+              padding: 1rem !important;
+            }
+            .mobile-top-bar {
+              display: flex !important;
+            }
+          }
+        `}
+      </style>
+    </>
+  );
+}
+
+const cardStyle = {
+  backgroundColor: 'white',
+  padding: '1.5rem 2rem',
+  borderRadius: '12px',
+  boxShadow: '0 4px 10px rgba(124, 58, 173, 0.3)',
+  flex: '1',
+  textAlign: 'center',
+  fontWeight: '700',
+  fontSize: '1.25rem',
+  color: '#7c3aed',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  gap: '0.5rem',
+};

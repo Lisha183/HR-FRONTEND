@@ -8,31 +8,44 @@ export default function Register() {
     password: "",
     role: "employee",
   });
+  const [message, setMessage] = useState(null); 
+  const [error, setError] = useState(null); 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setMessage(null); 
+    setError(null);   
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://127.0.0.1:8000/api/register/", {
-            method: "POST",
-      headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-            credentials: "include",
-        });
-
-        const data = await response.json();
-        console.log("Login response:", data);
-
-        if (response.ok) {
-      alert("Registration successful! Please login.");
-      navigate("/login");
-            } else {
-      alert("Registration failed! Please check the details.");
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/register/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+    
+      const data = await response.json();
+      console.log("Register response:", data);
+    
+      if (response.ok) {
+        setMessage("Registration successful! Please login.");
+        setError(null);
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        setError(data.detail || "Registration failed! Please check the details.");
+        setMessage(null);
+      }
+    } catch (err) {
+      setError("Network error. Please try again later.");
+      setMessage(null);
     }
-  };
+  };    
 
   return (
     <div className="login-container">
@@ -40,6 +53,9 @@ export default function Register() {
         <div className="login-form">
           <h2>Create an Account</h2>
           <p>Join us today! It's fast and easy.</p>
+          {message && <div className="success-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
+
           <form onSubmit={handleSubmit}>
             <input
               type="text"

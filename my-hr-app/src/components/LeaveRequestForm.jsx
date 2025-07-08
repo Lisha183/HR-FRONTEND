@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const trimmed = cookie.trim();
-            if (trimmed.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(trimmed.slice(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+import { getCookie } from '../utils/crsf'; 
 
 const LeaveRequestForm = () => {
     const { isAuthenticated, user } = useAuth();
@@ -29,6 +15,7 @@ const LeaveRequestForm = () => {
     });
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
+    const [loading, setLoading] = useState(false); 
 
     useEffect(() => {
         if (!isAuthenticated || (user && user.role !== 'employee')) {
@@ -48,21 +35,25 @@ const LeaveRequestForm = () => {
         e.preventDefault();
         setMessage('');
         setIsError(false);
+        setLoading(true); 
 
         if (!formData.start_date || !formData.end_date || !formData.reason) {
             setMessage('Please fill in all required fields.');
             setIsError(true);
+            setLoading(false);
             return;
         }
         if (new Date(formData.start_date) > new Date(formData.end_date)) {
             setMessage('Start date cannot be after end date.');
             setIsError(true);
+            setLoading(false);
             return;
         }
 
         if (!user || !user.id) {
             setMessage('Error: User information not available. Please log in again.');
             setIsError(true);
+            setLoading(false);
             return;
         }
 
@@ -74,7 +65,7 @@ const LeaveRequestForm = () => {
         const csrftoken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('http://localhost:8000/leave-requests/', { 
+            const response = await fetch('http://localhost:8000/api/employee/leave-requests/', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -103,93 +94,90 @@ const LeaveRequestForm = () => {
             console.error('Error submitting leave request:', error);
             setMessage('Network error or unable to connect to server.');
             setIsError(true);
+        } finally {
+            setLoading(false); 
         }
     };
-
-
 
     if (!isAuthenticated || (user && user.role !== 'employee')) {
         return <p className="loading-message">Redirecting to login or unauthorized...</p>;
     }
 
-
     return (
-        <div className="auth-container">
-            <form onSubmit={handleSubmit} className="auth-form">
-                <h2>Request Leave</h2>
+        <div className="leave-request-page-wrapper">
+            <div className="leave-request-main-card">
+                <h1 className="leave-request-page-title">Request Leave</h1>
+                
                 {message && (
-                    <p className={isError ? "error-message" : "success-message"}>
+                    <div className={`message-container ${isError ? "error" : "success"}`}>
                         {message}
-                    </p>
+                    </div>
                 )}
 
-                <label htmlFor="leave_type" style={{textAlign: 'left', display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em', color: '#555'}}>Leave Type:</label>
-                <select
-                    name="leave_type"
-                    id="leave_type"
-                    value={formData.leave_type}
-                    onChange={handleChange}
-                    style={{
-                        width: 'calc(100% - 24px)',
-                        padding: '14px 12px',
-                        marginBottom: '25px',
-                        border: '1px solid #dcdcdc',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    <option value="Annual Leave">Annual Leave</option>
-                    <option value="Sick Leave">Sick Leave</option>
-                    <option value="Maternity Leave">Maternity Leave</option>
-                    <option value="Paternity Leave">Paternity Leave</option>
-                    <option value="Unpaid Leave">Unpaid Leave</option>
-                    <option value="Other">Other</option>
-                </select>
+                <form onSubmit={handleSubmit} className="leave-request-form">
+                    <div className="form-group-leave-request">
+                        <label htmlFor="leave_type" className="leave-request-label">Leave Type:</label>
+                        <select
+                            name="leave_type"
+                            id="leave_type"
+                            value={formData.leave_type}
+                            onChange={handleChange}
+                            className="leave-request-input"
+                        >
+                            <option value="Annual Leave">Annual Leave</option>
+                            <option value="Sick Leave">Sick Leave</option>
+                            <option value="Maternity Leave">Maternity Leave</option>
+                            <option value="Paternity Leave">Paternity Leave</option>
+                            <option value="Unpaid Leave">Unpaid Leave</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
 
-                <label htmlFor="start_date" style={{textAlign: 'left', display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em', color: '#555'}}>Start Date:</label>
-                <input
-                    type="date"
-                    name="start_date"
-                    id="start_date"
-                    value={formData.start_date}
-                    onChange={handleChange}
-                    required
-                />
+                    <div className="form-group-leave-request">
+                        <label htmlFor="start_date" className="leave-request-label">Start Date:</label>
+                        <input
+                            type="date"
+                            name="start_date"
+                            id="start_date"
+                            value={formData.start_date}
+                            onChange={handleChange}
+                            required
+                            className="leave-request-input"
+                        />
+                    </div>
 
-                <label htmlFor="end_date" style={{textAlign: 'left', display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em', color: '#555'}}>End Date:</label>
-                <input
-                    type="date"
-                    name="end_date"
-                    id="end_date"
-                    value={formData.end_date}
-                    onChange={handleChange}
-                    required
-                />
+                    <div className="form-group-leave-request">
+                        <label htmlFor="end_date" className="leave-request-label">End Date:</label>
+                        <input
+                            type="date"
+                            name="end_date"
+                            id="end_date"
+                            value={formData.end_date}
+                            onChange={handleChange}
+                            required
+                            className="leave-request-input"
+                        />
+                    </div>
 
-                <label htmlFor="reason" style={{textAlign: 'left', display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em', color: '#555'}}>Reason:</label>
-                <textarea
-                    name="reason"
-                    id="reason"
-                    placeholder="Reason for leave..."
-                    value={formData.reason}
-                    onChange={handleChange}
-                    required
-                    rows="4"
-                    style={{
-                        width: 'calc(100% - 24px)',
-                        padding: '14px 12px',
-                        marginBottom: '25px',
-                        border: '1px solid #dcdcdc',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        boxSizing: 'border-box',
-                        resize: 'vertical',
-                    }}
-                ></textarea>
+                    <div className="form-group-leave-request">
+                        <label htmlFor="reason" className="leave-request-label">Reason:</label>
+                        <textarea
+                            name="reason"
+                            id="reason"
+                            placeholder="Reason for leave..."
+                            value={formData.reason}
+                            onChange={handleChange}
+                            required
+                            rows="4"
+                            className="leave-request-textarea"
+                        ></textarea>
+                    </div>
 
-                <button type="submit">Submit Request</button>
-            </form>
+                    <button type="submit" className="leave-request-submit-button" disabled={loading}>
+                        {loading ? 'Submitting...' : 'Submit Request'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

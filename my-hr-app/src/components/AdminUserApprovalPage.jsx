@@ -5,10 +5,12 @@ export default function AdminUserApprovalPage() {
     const [pendingUsers, setPendingUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [message, setMessage] = useState(null); 
 
     const fetchPendingUsers = async () => {
         setLoading(true);
         setError(null);
+        setMessage(null); 
         try {
             const csrfToken = getCookie('csrftoken');
             const response = await fetch('http://localhost:8000/api/admin/users/pending-approval/', {
@@ -41,6 +43,8 @@ export default function AdminUserApprovalPage() {
     }, []);
 
     const handleApproveUser = async (userId) => {
+        setMessage(null); 
+        setError(null);  
         try {
             const csrfToken = getCookie('csrftoken');
             const response = await fetch(`http://localhost:8000/api/admin/users/${userId}/approve/`, {
@@ -55,7 +59,7 @@ export default function AdminUserApprovalPage() {
 
             if (response.ok) {
                 setPendingUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-                console.log(`User ${userId} approved successfully.`);
+                setMessage(`User approved successfully!`);
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Failed to approve user.');
@@ -68,38 +72,47 @@ export default function AdminUserApprovalPage() {
     };
 
     if (loading) {
-        return <div className="p-6 text-center">Loading pending users...</div>;
+        return <p className="loading-message">Loading pending users...</p>;
     }
 
     if (error) {
-        return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+        return <p className="error-message">Error: {error}</p>;
     }
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-center">Pending User Approvals</h2>
-            {pendingUsers.length === 0 ? (
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                    <p className="text-gray-600">No users currently awaiting approval.</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {pendingUsers.map(user => (
-                        <div key={user.id} className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
-                            <div>
-                                <p className="text-lg font-semibold">{user.username}</p>
-                                <p className="text-gray-600 text-sm">{user.email} - {user.role}</p>
+        <div className="user-approval-page-wrapper">
+            <div className="user-approval-main-card">
+                <h1 className="user-approval-page-title">Pending User Approvals</h1>
+
+                {message && (
+                    <div className={`message-container ${error ? 'error' : 'success'}`}>
+                        {message}
+                    </div>
+                )}
+
+                {pendingUsers.length === 0 ? (
+                    <div className="no-users-message-card">
+                        <p className="no-records-message">No users currently awaiting approval.</p>
+                    </div>
+                ) : (
+                    <div className="user-list-section">
+                        {pendingUsers.map(user => (
+                            <div key={user.id} className="user-list-item">
+                                <div className="user-details">
+                                    <p className="user-username">{user.username}</p>
+                                    <p className="user-info">{user.email} - <span className="user-role">{user.role}</span></p>
+                                </div>
+                                <button
+                                    onClick={() => handleApproveUser(user.id)}
+                                    className="approve-user-button"
+                                >
+                                    Approve
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleApproveUser(user.id)}
-                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300"
-                            >
-                                Approve
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

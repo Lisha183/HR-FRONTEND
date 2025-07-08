@@ -19,7 +19,12 @@ const AdminAttendanceReport = () => {
             return;
         }
         fetchAttendanceRecords();
-    }, [isAuthenticated, user, navigate, filterEmployeeUsername, filterStartDate, filterEndDate]); 
+    }, [isAuthenticated, user, navigate]); 
+
+    const handleSearchClick = () => {
+        fetchAttendanceRecords();
+      };
+      
 
     const fetchAttendanceRecords = async () => {
         setLoading(true);
@@ -74,94 +79,89 @@ const AdminAttendanceReport = () => {
         if (name === 'endDate') setFilterEndDate(value);
     };
 
-    if (loading) return <p className="text-center text-gray-600">Loading attendance report...</p>;
-    if (error) return <p className="error-message text-red-600">Error: {error}</p>;
+    if (loading) return <p className="loading-message">Loading attendance report...</p>;
+    if (error) return <p className="error-message">Error: {error}</p>;
     if (!isAuthenticated || (user && user.role !== 'admin')) return null;
 
     return (
-        <div className="dashboard-container">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Attendance Report</h1>
+        <div className="attendance-page-wrapper">
+            <div className="attendance-main-card">
+                <h1 className="attendance-page-title">Attendance Report</h1>
 
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6 flex flex-wrap gap-4 items-center">
-                <div className="flex flex-col">
-                    <label htmlFor="employeeUsername" className="text-sm font-medium text-gray-700 mb-1">Employee Username:</label>
-                    <input
-                        type="text"
-                        id="employeeUsername"
-                        name="employeeUsername"
-                        value={filterEmployeeUsername}
-                        onChange={handleFilterChange}
-                        placeholder="Filter by username"
-                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
-                <div className="flex flex-col">
-                    <label htmlFor="startDate" className="text-sm font-medium text-gray-700 mb-1">Start Date:</label>
-                    <input
-                        type="date"
-                        id="startDate"
-                        name="startDate"
-                        value={filterStartDate}
-                        onChange={handleFilterChange}
-                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
-                <div className="flex flex-col">
-                    <label htmlFor="endDate" className="text-sm font-medium text-gray-700 mb-1">End Date:</label>
-                    <input
-                        type="date"
-                        id="endDate"
-                        name="endDate"
-                        value={filterEndDate}
-                        onChange={handleFilterChange}
-                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
-               
-            </div>
+                <div className="attendance-filter-form-section">
+                    <div className="form-group-attendance">
+                        <label htmlFor="employeeUsername">Employee Username:</label>
+                        <input
+                            type="text"
+                            id="employeeUsername"
+                            name="employeeUsername"
+                            value={filterEmployeeUsername}
+                            onChange={handleFilterChange}
+                            placeholder="Filter by username"
+                            className="attendance-input"
+                        />
+                    </div>
+                    <div className="form-group-attendance">
+                        <label htmlFor="startDate">Start Date:</label>
+                        <input
+                            type="date"
+                            id="startDate"
+                            name="startDate"
+                            value={filterStartDate}
+                            onChange={handleFilterChange}
+                            className="attendance-input"
+                        />
+                    </div>
+                    <div className="form-group-attendance">
+                        <label htmlFor="endDate">End Date:</label>
+                        <input
+                            type="date"
+                            id="endDate"
+                            name="endDate"
+                            value={filterEndDate}
+                            onChange={handleFilterChange}
+                            className="attendance-input"
+                        />
+                    </div>
+                    <button type="button" className="attendance-search-button" onClick={handleSearchClick} disabled={loading}>
+  Search
+</button>
 
-            {attendanceRecords.length > 0 ? (
-                <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ID
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Employee
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Timestamp
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Type
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {attendanceRecords.map((record) => (
-                                <tr key={record.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{record.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.employee_username}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(record.timestamp).toLocaleString()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            record.record_type === 'clock_in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {record.record_type.replace('_', ' ').toUpperCase()}
-                                        </span>
-                                    </td>
+                </div>
+
+                {attendanceRecords.length > 0 ? (
+                    <div className="attendance-table-container" >
+                        <table className="attendance-table" >
+                            <thead>
+                                <tr >
+                                    <th>ID</th>
+                                    <th>Employee</th>
+                                    <th>Timestamp</th>
+                                    <th>Type</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <p className="text-center text-gray-600">No attendance records found for the selected filters.</p>
-            )}
+                            </thead>
+                            <tbody>
+                                {attendanceRecords.map((record) => (
+                                    <tr key={record.id}>
+                                        <td>{record.id}</td>
+                                        <td>{record.employee_username}</td>
+                                        <td>
+                                            {new Date(record.timestamp).toLocaleString()}
+                                        </td>
+                                        <td>
+                                            <span className={`attendance-status-badge ${record.record_type.replace('_', '-')}`}>
+                                                {record.record_type.replace('_', ' ').toUpperCase()}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p className="no-records-message">No attendance records found for the selected filters.</p>
+                )}
+            </div>
         </div>
     );
 };

@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getCookie } from '../utils/crsf';
+import { getCookie } from '../utils/crsf'; 
 
 export default function AdminEmployeeProfilesPage() {
     const [employeeProfiles, setEmployeeProfiles] = useState([]);
-    const [departments, setDepartments] = useState([]); 
+    const [departments, setDepartments] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const validIds = employeeProfiles.map(profile => profile.id);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
-
-    const [editingProfile, setEditingProfile] = useState(null); 
+    const [pendingDeleteId, setPendingDeleteId] = useState(null);
+    const [editingProfile, setEditingProfile] = useState(null);
     const [profileFormData, setProfileFormData] = useState({
-        user: '', 
+        username: '',
         full_name: '',
         phone_number: '',
         address: '',
@@ -20,7 +22,7 @@ export default function AdminEmployeeProfilesPage() {
         hire_date: '',
         job_title: '',
         salary: '',
-        department: '', 
+        department: '',
     });
 
     const { isAuthenticated, user } = useAuth();
@@ -32,7 +34,8 @@ export default function AdminEmployeeProfilesPage() {
             return;
         }
         fetchEmployeeProfiles();
-        fetchDepartmentsForDropdown(); 
+        fetchDepartmentsForDropdown();
+        fetchUsersForDropdown();
     }, [isAuthenticated, user, navigate]);
 
     const fetchEmployeeProfiles = async () => {
@@ -55,6 +58,8 @@ export default function AdminEmployeeProfilesPage() {
             }
 
             const data = await response.json();
+            console.log("Fetched employee profiles after create:", data);
+
             setEmployeeProfiles(data);
         } catch (err) {
             console.error("Error fetching employee profiles:", err);
@@ -86,6 +91,30 @@ export default function AdminEmployeeProfilesPage() {
         }
     };
 
+    const fetchUsersForDropdown = async () => {
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const response = await fetch('http://localhost:8000/api/admin/users/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch users for dropdown.');
+            }
+
+            const data = await response.json();
+            setUsers(data);
+        } catch (err) {
+            console.error("Error fetching users for dropdown:", err);
+            setMessage(`Error loading users: ${err.message}`);
+        }
+    };
+
     const handleFormChange = (e) => {
         const { name, value } = e.target;
         setProfileFormData(prevData => ({ ...prevData, [name]: value }));
@@ -94,7 +123,7 @@ export default function AdminEmployeeProfilesPage() {
     const handleEditClick = (profile) => {
         setEditingProfile(profile);
         setProfileFormData({
-            user: profile.user.id, 
+            username: profile.user_username,
             full_name: profile.full_name,
             phone_number: profile.phone_number || '',
             address: profile.address || '',
@@ -102,14 +131,14 @@ export default function AdminEmployeeProfilesPage() {
             hire_date: profile.hire_date || '',
             job_title: profile.job_title || '',
             salary: profile.salary || '',
-            department: profile.department || '', 
+            department: profile.department || '',
         });
     };
 
     const handleCancelEdit = () => {
         setEditingProfile(null);
         setProfileFormData({
-            user: '', full_name: '', phone_number: '', address: '', date_of_birth: '',
+            username: '', full_name: '', phone_number: '', address: '', date_of_birth: '',
             hire_date: '', job_title: '', salary: '', department: ''
         });
         setMessage(null);
@@ -131,13 +160,13 @@ export default function AdminEmployeeProfilesPage() {
             dataToSend.department = null;
         }
         if (editingProfile) {
-            delete dataToSend.user;
+            delete dataToSend.username;
         } else {
-            dataToSend.user = parseInt(dataToSend.user, 10);
-            if (isNaN(dataToSend.user)) {
-                setError("User ID must be a valid number for new profiles.");
+            if(!dataToSend.username){
+                setError("User must be selected.")
                 return;
             }
+            
         }
 
         try {
@@ -158,8 +187,8 @@ export default function AdminEmployeeProfilesPage() {
             }
 
             setMessage(`Profile ${editingProfile ? 'updated' : 'created'} successfully!`);
-            handleCancelEdit(); 
-            fetchEmployeeProfiles(); 
+            handleCancelEdit();
+            fetchEmployeeProfiles();
         } catch (err) {
             console.error("Error saving profile:", err);
             setError(err.message);
@@ -167,9 +196,18 @@ export default function AdminEmployeeProfilesPage() {
     };
 
     const handleDeleteProfile = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this employee profile? This action cannot be undone.')) {
+        const validIds = employeeProfiles.map(profile => profile.id);
+        
+        if (!validIds.includes(id)) {
+            setError("Profile ID not found.");
             return;
-        }
+          }
+        if (pendingDeleteId !== id) {
+            setPendingDeleteId(id);
+        setMessage('Clicking delete will permanently remove this profile.');
+        return;
+    }
+
         setMessage(null);
         setError(null);
         try {
@@ -188,10 +226,13 @@ export default function AdminEmployeeProfilesPage() {
             }
 
             setMessage('Employee profile deleted successfully!');
-            fetchEmployeeProfiles(); 
+            setPendingDeleteId(null);
+            fetchEmployeeProfiles();
         } catch (err) {
             console.error("Error deleting profile:", err);
             setError(err.message);
+            setPendingDeleteId(null);
+
         }
     };
 
@@ -200,178 +241,196 @@ export default function AdminEmployeeProfilesPage() {
     if (!isAuthenticated || (user && user.role !== 'admin')) return null;
 
     return (
-        <div className="dashboard-container">
-            <h1 className="page-title">Manage Employee Profiles</h1>
+        <div className="employee-profile-page-wrapper">
+            <div className="employee-profile-main-card">
+                <h1 className="employee-profile-page-title">Manage Employee Profiles</h1>
 
-            {message && (
-                <div className={`message-container ${error ? 'error' : 'success'}`}>
-                    {message}
-                </div>
-            )}
+                {message && (
+                    <div className={`message-container ${error ? 'error' : 'success'}`}>
+                        {message}
+                    </div>
+                )}
 
-            <div className="payroll-form-section mb-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    {editingProfile ? `Edit Profile for ${editingProfile.user_username}` : 'Create New Employee Profile'}
-                </h2>
-                <form onSubmit={handleFormSubmit} className="payroll-form">
-                    {!editingProfile && ( 
-                        <div className="form-group">
-                            <label htmlFor="userId">User ID (for existing user):</label>
+                <div className="employee-profile-form-section">
+                    <h2 className="employee-profile-form-title">
+                        {editingProfile ? `Edit Profile for ${editingProfile.user_username}` : 'Create New Employee Profile'}
+                    </h2>
+                    <form onSubmit={handleFormSubmit} className="employee-profile-form">
+                        {!editingProfile && (
+                            <div className="form-group-employee-profile">
+                                <label htmlFor="user">Select User:</label>
+                                <select
+                                    id="username"
+                                    name="username"
+                                    value={profileFormData.username}
+                                    onChange={handleFormChange}
+                                    required
+                                    className="employee-profile-input"
+                                >
+                                    <option value="">-- Select a User --</option>
+                                    {users.map(u => (
+                                        <option key={u.id} value={u.username}>{u.username}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="fullName">Full Name:</label>
                             <input
                                 type="text"
-                                id="userId"
-                                name="user"
-                                value={profileFormData.user}
+                                id="fullName"
+                                name="full_name"
+                                value={profileFormData.full_name}
                                 onChange={handleFormChange}
                                 required
-                                placeholder="e.g., 123 (ID of an existing CustomUser)"
+                                className="employee-profile-input"
                             />
                         </div>
-                    )}
-                    <div className="form-group">
-                        <label htmlFor="fullName">Full Name:</label>
-                        <input
-                            type="text"
-                            id="fullName"
-                            name="full_name"
-                            value={profileFormData.full_name}
-                            onChange={handleFormChange}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="phoneNumber">Phone Number:</label>
-                        <input
-                            type="text"
-                            id="phoneNumber"
-                            name="phone_number"
-                            value={profileFormData.phone_number}
-                            onChange={handleFormChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="address">Address:</label>
-                        <textarea
-                            id="address"
-                            name="address"
-                            value={profileFormData.address}
-                            onChange={handleFormChange}
-                            rows="2"
-                        ></textarea>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="dob">Date of Birth:</label>
-                        <input
-                            type="date"
-                            id="dob"
-                            name="date_of_birth"
-                            value={profileFormData.date_of_birth}
-                            onChange={handleFormChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="hireDate">Hire Date:</label>
-                        <input
-                            type="date"
-                            id="hireDate"
-                            name="hire_date"
-                            value={profileFormData.hire_date}
-                            onChange={handleFormChange}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="jobTitle">Job Title:</label>
-                        <input
-                            type="text"
-                            id="jobTitle"
-                            name="job_title"
-                            value={profileFormData.job_title}
-                            onChange={handleFormChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="salary">Salary:</label>
-                        <input
-                            type="number"
-                            id="salary"
-                            name="salary"
-                            value={profileFormData.salary}
-                            onChange={handleFormChange}
-                            step="0.01"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="department">Department:</label>
-                        <select
-                            id="department"
-                            name="department"
-                            value={profileFormData.department}
-                            onChange={handleFormChange}
-                        >
-                            <option value="">-- Select Department --</option>
-                            {departments.map(dept => (
-                                <option key={dept.id} value={dept.id}>{dept.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="phoneNumber">Phone Number:</label>
+                            <input
+                                type="text"
+                                id="phoneNumber"
+                                name="phone_number"
+                                value={profileFormData.phone_number}
+                                onChange={handleFormChange}
+                                className="employee-profile-input"
+                            />
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="address">Address:</label>
+                            <textarea
+                                id="address"
+                                name="address"
+                                value={profileFormData.address}
+                                onChange={handleFormChange}
+                                rows="2"
+                                className="employee-profile-textarea"
+                            ></textarea>
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="dob">Date of Birth:</label>
+                            <input
+                                type="date"
+                                id="dob"
+                                name="date_of_birth"
+                                value={profileFormData.date_of_birth}
+                                onChange={handleFormChange}
+                                className="employee-profile-input"
+                            />
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="hireDate">Hire Date:</label>
+                            <input
+                                type="date"
+                                id="hireDate"
+                                name="hire_date"
+                                value={profileFormData.hire_date}
+                                onChange={handleFormChange}
+                                required
+                                className="employee-profile-input"
+                            />
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="jobTitle">Job Title:</label>
+                            <input
+                                type="text"
+                                id="jobTitle"
+                                name="job_title"
+                                value={profileFormData.job_title}
+                                onChange={handleFormChange}
+                                className="employee-profile-input"
+                            />
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="salary">Salary:</label>
+                            <input
+                                type="number"
+                                id="salary"
+                                name="salary"
+                                value={profileFormData.salary}
+                                onChange={handleFormChange}
+                                step="0.01"
+                                className="employee-profile-input"
+                            />
+                        </div>
+                        <div className="form-group-employee-profile">
+                            <label htmlFor="department">Department:</label>
+                            <select
+                                id="department"
+                                name="department"
+                                value={profileFormData.department}
+                                onChange={handleFormChange}
+                                className="employee-profile-input"
+                            >
+                                <option value="">-- Select Department --</option>
+                                {departments.map(dept => (
+                                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <button type="submit" className="approve-button">
-                        {editingProfile ? 'Update Profile' : 'Create Profile'}
-                    </button>
-                    {editingProfile && (
-                        <button type="button" onClick={handleCancelEdit} className="cancel-button mt-2">
-                            Cancel Edit
-                        </button>
-                    )}
-                </form>
-            </div>
+                        <div className="form-actions-employee-profile">
+                            <button type="submit" className="employee-profile-action-button" disabled={loading}>
+                                {loading ? 'Saving...' : (editingProfile ? 'Update Profile' : 'Create Profile')}
+                            </button>
+                            {editingProfile && (
+                                <button type="button" onClick={handleCancelEdit} className="employee-profile-cancel-button">
+                                    Cancel Edit
+                                </button>
+                            )}
+                        </div>
+                    </form>
+                </div>
 
-            <div className="payroll-list-section">
-                <h2 className="text-xl font-semibold mb-4">Existing Employee Profiles ({employeeProfiles.length})</h2>
-                {employeeProfiles.length === 0 ? (
-                    <p className="no-records-message">No employee profiles found.</p>
-                ) : (
-                    <table className="payroll-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Full Name</th>
-                                <th>Department</th>
-                                <th>Job Title</th>
-                                <th>Hire Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {employeeProfiles.map(profile => (
-                                <tr key={profile.id}>
-                                    <td>{profile.id}</td>
-                                    <td>{profile.user_username}</td>
-                                    <td>{profile.full_name}</td>
-                                    <td>{profile.department_name || 'N/A'}</td> 
-                                    <td>{profile.job_title}</td>
-                                    <td>{profile.hire_date}</td>
-                                    <td>
-                                        <button
-                                            onClick={() => handleEditClick(profile)}
-                                            className="approve-button mr-2"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteProfile(profile.id)}
-                                            className="cancel-button"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                <div className="employee-profile-list-section">
+                    <h2 className="employee-profile-list-title">Existing Employee Profiles ({employeeProfiles.length})</h2>
+                    {employeeProfiles.length === 0 ? (
+                        <p className="no-records-message">No employee profiles found.</p>
+                    ) : (
+                        <div className="employee-profile-table-container">
+                            <table className="employee-profile-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>User</th>
+                                        <th>Full Name</th>
+                                        <th>Department</th>
+                                        <th>Job Title</th>
+                                        <th>Hire Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {employeeProfiles.map(profile => (
+                                        <tr key={profile.id}>
+                                            <td>{profile.id}</td>
+                                            <td>{profile.user_username}</td>
+                                            <td>{profile.full_name}</td>
+                                            <td>{profile.department_name || 'N/A'}</td>
+                                            <td>{profile.job_title}</td>
+                                            <td>{profile.hire_date}</td>
+                                            <td>
+                                                <button
+                                                    onClick={() => handleEditClick(profile)}
+                                                    className="employee-profile-edit-button"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteProfile(profile.id)}
+                                                    className="employee-profile-delete-button"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

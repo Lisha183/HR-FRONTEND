@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getCookie } from '../utils/crsf';
+import { getCookie } from '../utils/crsf'; 
+
 export default function EmployeeLeaveHistory() {
     const [leaveRequests, setLeaveRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -9,6 +10,9 @@ export default function EmployeeLeaveHistory() {
     const [message, setMessage] = useState(null); 
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmModalMessage, setConfirmModalMessage] = useState('');
+    const [confirmModalRequestId, setConfirmModalRequestId] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated || (user && user.role !== 'employee')) {
@@ -21,6 +25,7 @@ export default function EmployeeLeaveHistory() {
     const fetchLeaveRequests = async () => {
         setLoading(true);
         setError(null);
+        setMessage(null); 
         try {
             const csrftoken = getCookie('csrftoken');
             const response = await fetch('http://localhost:8000/api/employee/leave-requests/', {
@@ -46,11 +51,26 @@ export default function EmployeeLeaveHistory() {
             setLoading(false);
         }
     };
+    const showCancelConfirmation = (id, status) => {
+        const msg = status === 'Approved' 
+            ? 'Are you sure you want to cancel this APPROVED leave request? This may require HR review.'
+            : 'Are you sure you want to cancel this leave request?';
+        setConfirmModalMessage(msg);
+        setConfirmModalRequestId(id);
+        setShowConfirmModal(true);
+        setMessage(null); 
+        setError(null);
+    };
 
-    const handleCancelRequest = async (id) => {
-        if (!window.confirm('Are you sure you want to cancel this leave request?')) {
-            return;
+    const handleConfirmCancel = async (confirmed) => {
+        setShowConfirmModal(false); 
+        if (confirmed && confirmModalRequestId) {
+            await executeCancelRequest(confirmModalRequestId);
         }
+        setConfirmModalMessage('');
+        setConfirmModalRequestId(null);
+    };
+    const executeCancelRequest = async (id) => {
         setMessage(null);
         setError(null);
         try {
@@ -83,70 +103,90 @@ export default function EmployeeLeaveHistory() {
     if (!isAuthenticated || (user && user.role !== 'employee')) return null; 
 
     return (
-        <div className="dashboard-container">
-            <h1 className="page-title">My Leave History</h1>
+        <div className="employee-leave-history-page-wrapper">
+            <div className="employee-leave-history-main-card">
+                <h1 className="employee-leave-history-page-title">My Leave History</h1>
 
-            {message && (
-                <div className={`message-container ${error ? 'error' : 'success'}`}>
-                    {message}
-                </div>
-            )}
+                {message && (
+                    <div className={`message-container ${error ? 'error' : 'success'}`}>
+                        {message}
+                    </div>
+                )}
 
-            {leaveRequests.length === 0 ? (
-                <p className="no-records-message">No leave requests found.</p>
-            ) : (
-                <div className="table-container">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Leave Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Requested At</th>
-                                <th>Approved By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {leaveRequests.map(request => (
-                                <tr key={request.id}>
-                                    <td data-label="ID">{request.id}</td>
-                                    <td data-label="Leave Type">{request.leave_type}</td>
-                                    <td data-label="Start Date">{request.start_date}</td>
-                                    <td data-label="End Date">{request.end_date}</td>
-                                    <td data-label="Reason">{request.reason}</td>
-                                    <td data-label="Status">{request.status}</td>
-                                    <td data-label="Requested At">{new Date(request.requested_at).toLocaleDateString()}</td>
-                                    <td data-label="Approved By">{request.approved_by_username || 'N/A'}</td>
-                                    <td data-label="Actions">
-                                        {request.status === 'Pending' && (
-                                            <button
-                                                onClick={() => handleCancelRequest(request.id)}
-                                                className="cancel-button"
-                                            >
-                                                Cancel
-                                            </button>
-                                        )}
-                                        {request.status === 'Approved' && (
-                                            <button
-                                                onClick={() => handleCancelRequest(request.id)}
-                                                className="cancel-button"
-                                            >
-                                                Cancel Approved
-                                            </button>
-                                        )}
-                                    </td>
+                {leaveRequests.length === 0 ? (
+                    <p className="no-records-message">No leave requests found.</p>
+                ) : (
+                    <div className="employee-leave-history-table-container">
+                        <table className="employee-leave-history-data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Leave Type</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Requested At</th>
+                                    <th>Approved By</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {leaveRequests.map(request => (
+                                    <tr key={request.id}>
+                                        <td data-label="ID">{request.id}</td>
+                                        <td data-label="Leave Type">{request.leave_type}</td>
+                                        <td data-label="Start Date">{request.start_date}</td>
+                                        <td data-label="End Date">{request.end_date}</td>
+                                        <td data-label="Reason">{request.reason}</td>
+                                        <td data-label="Status">
+                                            <span className={`status-badge status-${request.status.toLowerCase().replace(/\s/g, '-')}`}>
+                                                {request.status}
+                                            </span>
+                                        </td>
+                                        <td data-label="Requested At">{new Date(request.requested_at).toLocaleDateString()}</td>
+                                        <td data-label="Approved By">{request.approved_by_username || 'N/A'}</td>
+                                        <td data-label="Actions">
+                                            {(request.status === 'Pending' || request.status === 'Approved') && (
+                                                <button
+                                                    onClick={() => showCancelConfirmation(request.id, request.status)}
+                                                    className="employee-leave-history-action-button cancel-action"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3 className="modal-title">Confirm Cancellation</h3>
+                        <p className="modal-message">{confirmModalMessage}</p>
+                        <div className="modal-actions">
+                            <button
+                                onClick={() => handleConfirmCancel(false)}
+                                className="modal-button modal-cancel-button"
+                            >
+                                No
+                            </button>
+                            <button
+                                onClick={() => handleConfirmCancel(true)}
+                                className="modal-button modal-confirm-button"
+                            >
+                                Yes, Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
     );
 }
-
 
