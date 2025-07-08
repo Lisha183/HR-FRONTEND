@@ -48,19 +48,19 @@ export default function AdminDashboard() {
       const csrfToken = getCookie("csrftoken");
 
       const [employeesRes, departmentsRes, leavesRes] = await Promise.all([
-        fetch("http://hr-backend-xs34.onrender.com/api/employee-profiles/", {
+        fetch("https://hr-backend-xs34.onrender.com/api/employee-profiles/", {
           credentials: "include",
           headers: {
             "X-CSRFToken": csrfToken,
           },
         }),
-        fetch("http://hr-backend-xs34.onrender.com/api/departments/", {
+        fetch("https://hr-backend-xs34.onrender.com/api/departments/", {
           credentials: "include",
           headers: {
             "X-CSRFToken": csrfToken,
           },
         }),
-        fetch("http://hr-backend-xs34.onrender.com/api/leave-requests/", {
+        fetch("https://hr-backend-xs34.onrender.com/api/leave-requests/", {
           credentials: "include",
           headers: {
             "X-CSRFToken": csrfToken,

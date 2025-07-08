@@ -43,7 +43,7 @@ export default function AdminEmployeeProfilesPage() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/employee-profiles/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/employee-profiles/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export default function AdminEmployeeProfilesPage() {
     const fetchDepartmentsForDropdown = async () => {
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/departments/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/departments/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export default function AdminEmployeeProfilesPage() {
     const fetchUsersForDropdown = async () => {
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/users/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,8 +152,8 @@ export default function AdminEmployeeProfilesPage() {
 
         const method = editingProfile ? 'PUT' : 'POST';
         const url = editingProfile
-            ? `http://hr-backend-xs34.onrender.com//api/employee-profiles/${editingProfile.id}/`
-            : 'http://hr-backend-xs34.onrender.com/api/employee-profiles/';
+            ? `https://hr-backend-xs34.onrender.com//api/employee-profiles/${editingProfile.id}/`
+            : 'https://hr-backend-xs34.onrender.com/api/employee-profiles/';
 
         const dataToSend = { ...profileFormData };
         if (dataToSend.department === '') {
@@ -212,7 +212,7 @@ export default function AdminEmployeeProfilesPage() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/employee-profiles/${id}/`, {
+            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee-profiles/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrftoken,

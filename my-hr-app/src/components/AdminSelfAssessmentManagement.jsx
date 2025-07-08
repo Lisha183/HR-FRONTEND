@@ -35,7 +35,7 @@ export default function AdminSelfAssessmentManagement({ onViewAssessment }) {
 
     try {
       const csrftoken = getCookie('csrftoken');
-      let url = 'http://hr-backend-xs34.onrender.com/api/admin/self-assessments/';
+      let url = 'https://hr-backend-xs34.onrender.com/api/admin/self-assessments/';
       const queryParams = new URLSearchParams();
 
       if (customFilters.employeeUsername) queryParams.append('employee_username', customFilters.employeeUsername);

@@ -49,7 +49,7 @@ export default function EmployeeDashboard() {
       setProfileError(null);
       try {
         const csrftoken = getCookie('csrftoken');
-        const response = await fetch(`http://hr-backend-xs34.onrender.com/api/employee-profiles/?user=${user.id}/`, {
+        const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee-profiles/?user=${user.id}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

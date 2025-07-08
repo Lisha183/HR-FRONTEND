@@ -83,7 +83,7 @@ export default function AdminPayrollManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/payroll/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/payroll/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export default function AdminPayrollManagement() {
     const fetchUsers = async () => {
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/users/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -180,8 +180,8 @@ export default function AdminPayrollManagement() {
 
         const method = editingPayroll ? 'PUT' : 'POST';
         const url = editingPayroll
-            ? `http://hr-backend-xs34.onrender.com/api/admin/payroll/${editingPayroll.id}/`
-            : 'http://hr-backend-xs34.onrender.com/api/admin/payroll/';
+            ? `https://hr-backend-xs34.onrender.com/api/admin/payroll/${editingPayroll.id}/`
+            : 'https://hr-backend-xs34.onrender.com/api/admin/payroll/';
 
             const dataToSend = {
                 employee: parseInt(payrollFormData.employee, 10),
@@ -229,7 +229,7 @@ export default function AdminPayrollManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/admin/payroll/${id}/`, {
+            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/payroll/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrftoken,

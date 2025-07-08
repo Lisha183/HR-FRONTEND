@@ -28,7 +28,7 @@ export default function EmployeeLeaveHistory() {
         setMessage(null); 
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/employee/leave-requests/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/employee/leave-requests/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export default function EmployeeLeaveHistory() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/employee/leave-requests/${id}/`, {
+            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/leave-requests/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
