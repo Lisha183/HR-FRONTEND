@@ -40,7 +40,7 @@ export default function EmployeeMeetingBooking() {
         const fetchHrReviewers = async () => {
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch('http://localhost:8000/api/hr-users/', { 
+                const response = await fetch('http://hr-backend-xs34.onrender.com/api/hr-users/', { 
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function EmployeeMeetingBooking() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            let url = 'http://localhost:8000/api/employee/meeting-slots/';
+            let url = 'http://hr-backend-xs34.onrender.com/api/employee/meeting-slots/';
             const queryParams = new URLSearchParams();
 
             if (filterHrUsername) queryParams.append('hr_username', filterHrUsername);
@@ -111,7 +111,7 @@ export default function EmployeeMeetingBooking() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://localhost:8000/api/employee/my-booked-slots/', {
+            const response = await fetch('http://hr-backend-xs34.onrender.com/api/employee/my-booked-slots/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function EmployeeMeetingBooking() {
                 requestBody.self_assessment = slotToBook.self_assessment;
             }
 
-            const response = await fetch(`http://localhost:8000/api/employee/meeting-slots/${slotId}/book/`, {
+            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/employee/meeting-slots/${slotId}/book/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ setBookedSlots(prev => [...prev, { ...slotToBook, is_booked: true, booked_by_emp
     const executeUnbookSlot = async (slotId , slotToUnbook) => {
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://localhost:8000/api/employee/meeting-slots/${slotId}/unbook/`, {
+            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/employee/meeting-slots/${slotId}/unbook/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ export default function Login() {
   const { loginUser } = useAuth();
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/csrf/", {
+    fetch("http://hr-backend-xs34.onrender.com/api/csrf/", {
       credentials: "include",
     });
   }, []);
@@ -40,7 +40,7 @@ export default function Login() {
     try {
         const csrfToken = getCookie("csrftoken");
 
-        const response = await fetch("http://localhost:8000/api/login/", {
+        const response = await fetch("https://hr-frontend-nbkexoywm-lisha183s-projects.vercel.app/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

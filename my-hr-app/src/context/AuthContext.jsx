@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUserDetails = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/user/me/', {
+            const response = await fetch('http://hr-backend-xs34.onrender.com/api/user/me/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 
             if (response.ok) {
                 const userData = await response.json();
-                console.log("✅ AuthContext: User data fetched from session endpoint:", userData);
+                console.log(" AuthContext: User data fetched from session endpoint:", userData);
                 
                 const userId = userData.id;
                 const username = userData.username;
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => { 
         try {
-            const response = await fetch('http://localhost:8000/api/logout/', {
+            const response = await fetch('http://hr-backend-xs34.onrender.com/api/logout/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

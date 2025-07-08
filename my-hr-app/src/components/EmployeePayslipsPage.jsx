@@ -15,7 +15,7 @@ export default function EmployeePayslipsPage({ onViewDetails }) {
             setError(null);
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch('http://localhost:8000/api/employee/payslips/', {
+                const response = await fetch('http://hr-backend-xs34.onrender.com/api/employee/payslips/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
