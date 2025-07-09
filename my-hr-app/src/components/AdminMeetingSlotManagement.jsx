@@ -41,7 +41,7 @@ export default function AdminMeetingSlotManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/meeting-slots/', {
+            const response = await fetch('http://localhost:8000/api/admin/meeting-slots/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function AdminMeetingSlotManagement() {
     const fetchSelfAssessmentsForDropdown = async () => {
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/self-assessments/?status=Pending HR Review', {
+            const response = await fetch('http://localhost:8000/api/admin/self-assessments/?status=Pending HR Review', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,8 +105,8 @@ export default function AdminMeetingSlotManagement() {
 
         const method = editingSlot ? 'PUT' : 'POST';
         const url = editingSlot
-            ? `https://hr-backend-xs34.onrender.com/api/admin/meeting-slots/${editingSlot.id}/`
-            : 'https://hr-backend-xs34.onrender.com/api/admin/meeting-slots/';
+            ? `http://localhost:8000/api/admin/meeting-slots/${editingSlot.id}/`
+            : 'http://localhost:8000/api/admin/meeting-slots/';
 
         let dataToSend = editingSlot ? { ...editingSlot } : { ...newSlotFormData };
 
@@ -157,7 +157,7 @@ export default function AdminMeetingSlotManagement() {
 
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`https://hr-backend-xs34.onrender.com//api/admin/meeting-slots/${confirmDeleteId}/`, {
+            const response = await fetch(`http://localhost:8000/api/admin/meeting-slots/${confirmDeleteId}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrftoken,

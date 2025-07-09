@@ -28,7 +28,7 @@ export default function AdminLeaveManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://hr-backend-xs34.onrender.com/api/admin/leave-requests/', {
+            const response = await fetch('http://localhost:8000/api/admin/leave-requests/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export default function AdminLeaveManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/admin/leave-requests/${id}/`, {
+            const response = await fetch(`http://localhost:8000/api/admin/leave-requests/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export default function AdminLeaveManagement() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://hr-backend-xs34.onrender.com/api/admin/leave-requests/${id}/`, {
+            const response = await fetch(`http://localhost:8000/api/admin/leave-requests/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrftoken,

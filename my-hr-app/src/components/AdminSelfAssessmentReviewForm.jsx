@@ -40,7 +40,7 @@ export default function AdminSelfAssessmentReviewForm({ assessmentId, onBack }) 
     const fetchAssessmentDetails = async () => {
       try {
         const csrftoken = getCookie('csrftoken');
-        const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/self-assessments/${assessmentId}/`, {
+        const response = await fetch(`http://localhost:8000/api/admin/self-assessments/${assessmentId}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function AdminSelfAssessmentReviewForm({ assessmentId, onBack }) 
       };
       console.log('PATCH payload:', payload);
   
-      const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/self-assessments/${assessmentId}/`, {
+      const response = await fetch(`http://localhost:8000/api/admin/self-assessments/${assessmentId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

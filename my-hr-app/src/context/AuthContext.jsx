@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUserDetails = async () => {
         try {
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/user/me/', {
+            const response = await fetch('http://localhost:8000/api/user/me/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,30 +54,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        const initializeAuth = async () => {
-            try {
-                // Step 1: Fetch CSRF cookie first
-                await fetch('https://hr-backend-xs34.onrender.com/api/csrf/', {
-                    credentials: 'include',
-                });
-                console.log('CSRF cookie fetched successfully.');
-    
-                const userRole = await fetchUserDetails();
-    
-                const currentPath = window.location.pathname;
-                if (userRole === 'admin' && (currentPath === '/login' || currentPath === '/')) {
-                    navigate('/admin-dashboard');
-                } else if (userRole === 'employee' && (currentPath === '/login' || currentPath === '/')) {
-                    navigate('/employee-dashboard');
-                }
-            } catch (error) {
-                console.error('Error during auth initialization:', error);
+        console.log("AuthContext: Initializing/Checking auth state from useEffect (once on mount).");
+        fetchUserDetails().then(userRole => {
+            const currentPath = window.location.pathname;
+
+            if (userRole === 'admin' && (currentPath === '/login' || currentPath === '/')) {
+                console.log("AuthContext: Initial session - redirecting Admin to /admin-dashboard.");
+                navigate('/admin-dashboard');
+            } else if (userRole === 'employee' && (currentPath === '/login' || currentPath === '/')) {
+                console.log("AuthContext: Initial session - redirecting Employee to /employee-dashboard.");
+                navigate('/employee-dashboard');
             }
-        };
-    
-        initializeAuth();
-    }, []);
-    
+        });
+    }, []); 
 
     useEffect(() => {
         console.log("AuthContext state changed:");
@@ -109,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => { 
         try {
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/logout/', {
+            const response = await fetch('http://localhost:8000/api/logout/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

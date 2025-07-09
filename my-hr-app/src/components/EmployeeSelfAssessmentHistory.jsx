@@ -34,7 +34,7 @@ export default function EmployeeSelfAssessmentHistory() {
             setError(null);
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch('https://hr-backend-xs34.onrender.com/api/employee/self-assessments/', {
+                const response = await fetch('http://localhost:8000/api/employee/self-assessments/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

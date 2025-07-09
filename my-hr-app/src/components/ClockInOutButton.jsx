@@ -24,7 +24,7 @@ const ClockInOutButton = () => {
         setIsError(false);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/attendance/', {
+            const response = await fetch('http://localhost:8000/api/attendance/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ const ClockInOutButton = () => {
         setLoading(true);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/attendance/', {
+            const response = await fetch('http://localhost:8000/api/attendance/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

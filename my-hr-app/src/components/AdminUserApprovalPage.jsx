@@ -13,7 +13,7 @@ export default function AdminUserApprovalPage() {
         setMessage(null); 
         try {
             const csrfToken = getCookie('csrftoken');
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/pending-approval/', {
+            const response = await fetch('http://localhost:8000/api/admin/users/pending-approval/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export default function AdminUserApprovalPage() {
         setError(null);  
         try {
             const csrfToken = getCookie('csrftoken');
-            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/users/${userId}/approve/`, {
+            const response = await fetch(`http://localhost:8000/api/admin/users/${userId}/approve/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

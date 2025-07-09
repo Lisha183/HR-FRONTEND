@@ -49,7 +49,7 @@ export default function EmployeeDashboard() {
       setProfileError(null);
       try {
         const csrftoken = getCookie('csrftoken');
-        const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee-profiles/?user=${user.id}/`, {
+        const response = await fetch(`http://localhost:8000/api/employee-profiles/?user=${user.id}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -82,39 +82,10 @@ export default function EmployeeDashboard() {
     }
   }, [isAuthenticated, user]);
 
-  const handleLogout = async () => {
-    try {
-      await fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
-        credentials: "include",
-      });
-  
-      const csrfToken = getCookie("csrftoken");
-  
-      if (!csrfToken || csrfToken.length < 10) {
-        throw new Error("Invalid or missing CSRF token.");
-      }
-  
-      const response = await fetch("https://hr-backend-xs34.onrender.com/api/logout/", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Logout failed.");
-      }
-  
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error.message);
-      alert("Logout failed. Please try again.");
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
-  
 
   
 
