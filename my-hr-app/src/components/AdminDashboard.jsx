@@ -46,6 +46,7 @@ export default function AdminDashboard() {
   const fetchCounts = async () => {
     try {
       const csrfToken = getCookie("csrftoken");
+      console.log('CSRF token:', csrfToken, 'Length:', csrfToken?.length);
 
       const [employeesRes, departmentsRes, leavesRes] = await Promise.all([
         fetch("https://hr-backend-xs34.onrender.com/api/employee-profiles/", {

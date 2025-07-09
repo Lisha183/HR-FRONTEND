@@ -31,6 +31,7 @@ const AdminAttendanceReport = () => {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
+            
             let url = 'https://hr-backend-xs34.onrender.com/api/admin/attendance/';
             const queryParams = new URLSearchParams();
 
