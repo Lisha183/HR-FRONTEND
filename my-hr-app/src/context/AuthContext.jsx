@@ -54,19 +54,30 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        console.log("AuthContext: Initializing/Checking auth state from useEffect (once on mount).");
-        fetchUserDetails().then(userRole => {
-            const currentPath = window.location.pathname;
-
-            if (userRole === 'admin' && (currentPath === '/login' || currentPath === '/')) {
-                console.log("AuthContext: Initial session - redirecting Admin to /admin-dashboard.");
-                navigate('/admin-dashboard');
-            } else if (userRole === 'employee' && (currentPath === '/login' || currentPath === '/')) {
-                console.log("AuthContext: Initial session - redirecting Employee to /employee-dashboard.");
-                navigate('/employee-dashboard');
+        const initializeAuth = async () => {
+            try {
+                // Step 1: Fetch CSRF cookie first
+                await fetch('https://hr-backend-xs34.onrender.com/api/csrf/', {
+                    credentials: 'include',
+                });
+                console.log('CSRF cookie fetched successfully.');
+    
+                const userRole = await fetchUserDetails();
+    
+                const currentPath = window.location.pathname;
+                if (userRole === 'admin' && (currentPath === '/login' || currentPath === '/')) {
+                    navigate('/admin-dashboard');
+                } else if (userRole === 'employee' && (currentPath === '/login' || currentPath === '/')) {
+                    navigate('/employee-dashboard');
+                }
+            } catch (error) {
+                console.error('Error during auth initialization:', error);
             }
-        });
-    }, []); 
+        };
+    
+        initializeAuth();
+    }, []);
+    
 
     useEffect(() => {
         console.log("AuthContext state changed:");
