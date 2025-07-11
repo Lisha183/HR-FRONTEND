@@ -23,11 +23,26 @@ export default function Login() {
   const navigate = useNavigate();
   const { loginUser } = useAuth();
 
+  // useEffect(() => {
+  //   fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
+  //     credentials: "include",
+  //   });
+  // }, []);
   useEffect(() => {
-    fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
-      credentials: "include",
-    });
+    async function fetchCSRF() {
+      try {
+        const res = await fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
+          method: "GET",
+          credentials: "include", // 👈 super important to get the cookie
+        });
+        console.log("CSRF set headers:", res.headers);
+      } catch (err) {
+        console.error("Failed to fetch CSRF cookie:", err);
+      }
+    }
+    fetchCSRF();
   }, []);
+  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
