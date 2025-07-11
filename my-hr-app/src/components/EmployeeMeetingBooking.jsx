@@ -282,7 +282,7 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                 ))}
                             </select>
                         </div>
-                        <div className="form-group-meeting-booking">
+                        {/* <div className="form-group-meeting-booking">
                             <label htmlFor="tempSelfAssessmentId" className="meeting-booking-label">Self-Assessment ID:</label>
                             <input
                                 type="number"
@@ -292,7 +292,7 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                 className="meeting-booking-input"
                                 placeholder="e.g., 123"
                             />
-                        </div>
+                        </div> */}
                         <div className="meeting-booking-filter-actions">
                             <button
                                 onClick={() => {
@@ -320,7 +320,7 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                         <th>Date</th>
                                         <th>Start Time</th>
                                         <th>End Time</th>
-                                        <th>Self-Assessment</th>
+                                        {/* <th>Self-Assessment</th> */}
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -332,8 +332,8 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                             <td data-label="Date">{slot.date}</td>
                                             <td data-label="Start Time">{slot.start_time}</td>
                                             <td data-label="End Time">{slot.end_time}</td>
-                                            <td data-label="Self-Assessment">{slot.self_assessment_id }
-                                            </td>
+                                            {/* <td data-label="Self-Assessment">{slot.self_assessment_id }
+                                            </td> */}
                                             <td data-label="Actions">
                                                 <button onClick={() => handleUnbookSlot(slot.id)} className="meeting-booking-cancel-button">
                                                     Unbook
@@ -360,7 +360,7 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                         <th>Date</th>
                                         <th>Start Time</th>
                                         <th>End Time</th>
-                                        <th>Self-Assessment</th>
+                                        {/* <th>Self-Assessment</th> */}
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -372,12 +372,12 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                             <td data-label="Date">{slot.date}</td>
                                             <td data-label="Start Time">{slot.start_time}</td>
                                             <td data-label="End Time">{slot.end_time}</td>
-                                            <td data-label="Self-Assessment">
+                                            {/* <td data-label="Self-Assessment">
                                                 {slot.self_assessment_id ? (
                                                     <span>ID: {slot.self_assessment_id}</span>
 
                                                 ) : 'N/A'}
-                                            </td>
+                                            </td> */}
                                             <td data-label="Actions">
                                                 {!bookedSlots.some(bs => bs.id === slot.id) ? (
                                                     <button

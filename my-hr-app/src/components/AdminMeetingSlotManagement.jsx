@@ -16,7 +16,7 @@ export default function AdminMeetingSlotManagement() {
         date: '',
         start_time: '',
         end_time: '',
-        self_assessment: '',
+        // self_assessment: '',
     });
     const [editingSlot, setEditingSlot] = useState(null);
 
@@ -230,7 +230,7 @@ throw new Error(errorText || 'Unable to delete slot');
                         <label>End Time:</label>
                         <input type="time" name="end_time" value={currentFormData.end_time} onChange={handleFormChange} required />
                     </div>
-                    <div className="form-group">
+                    {/* <div className="form-group">
                         <label>Self-Assessment:</label>
                         <select name="self_assessment" value={currentFormData.self_assessment || ''} onChange={handleFormChange}>
                             <option value="">Select Self-Assessment </option>
@@ -240,7 +240,7 @@ throw new Error(errorText || 'Unable to delete slot');
                                 </option>
                             ))}
                         </select>
-                    </div>
+                    </div> */}
                     <button type="submit" className="approve-button">
                         {editingSlot ? 'Update Slot' : 'Create Slot'}
                     </button>
@@ -267,7 +267,7 @@ throw new Error(errorText || 'Unable to delete slot');
                                 <th>End</th>
                                 <th>Booked?</th>
                                 <th>Booked By</th>
-                                <th>Self-Assessment</th>
+                                {/* <th>Self-Assessment</th> */}
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -290,12 +290,12 @@ throw new Error(errorText || 'Unable to delete slot');
             </>
           ) : 'N/A'}
         </td>
-        <td>
+        {/* <td>
           {slot.self_assessment_id ? (
             <span>ID: {slot.self_assessment_id}</span>
 
           ) : 'N/A'}
-        </td>
+        </td> */}
         <td>
           <button onClick={() => setEditingSlot({ ...slot })} className="approve-button mr-2">
             Edit
