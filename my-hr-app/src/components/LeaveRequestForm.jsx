@@ -22,7 +22,7 @@ const LeaveRequestForm = () => {
             navigate('/login');
             return;
         }
-        fetch("http://localhost:8000/api/csrf/", {
+        fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
             credentials: "include",
         });
     }, [isAuthenticated, user, navigate]);
@@ -65,7 +65,7 @@ const LeaveRequestForm = () => {
         const csrftoken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('http://localhost:8000/api/employee/leave-requests/', { 
+            const response = await fetch('https://hr-backend-xs34.onrender.comapi/employee/leave-requests/', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

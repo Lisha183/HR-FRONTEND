@@ -60,7 +60,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
 
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch(`http://localhost:8000/api/employee/self-assessments/${effectiveId}/`, {
+                const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/self-assessments/${effectiveId}/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
             }
         };
 
-        fetch('http://localhost:8000/api/csrf/', { credentials: 'include' });
+        fetch('https://hr-backend-xs34.onrender.com/api/csrf/', { credentials: 'include' });
 
         fetchAssessment();
     }, [effectiveId, isEditMode, isAuthenticated, user, navigate]); 
@@ -119,7 +119,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
                 setMessage(null);
                 try {
                     const csrfToken = getCookie('csrftoken');
-                    const res = await fetch(`http://localhost:8000/api/employee/self-assessments/?quarter_number=${formData.quarter_number}&year=${formData.year}`, {
+                    const res = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/self-assessments/?quarter_number=${formData.quarter_number}&year=${formData.year}`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                         credentials: 'include',
@@ -211,11 +211,11 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
         try {
             setLoading(true);
             const csrftoken = getCookie('csrftoken');
-            let url = 'http://localhost:8000/api/employee/self-assessments/';
+            let url = 'https://hr-backend-xs34.onrender.com/api/employee/self-assessments/';
             let method = 'POST';
 
             if (isEditMode) {
-                url = `http://localhost:8000/api/employee/self-assessments/${effectiveId}/`;
+                url = `https://hr-backend-xs34.onrender.com/api/employee/self-assessments/${effectiveId}/`;
                 method = 'PATCH';
             }
 

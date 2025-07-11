@@ -53,7 +53,7 @@ export default function AdminDepartmentsPage() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://localhost:8000/api/admin/departments/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/departments/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function AdminDepartmentsPage() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch('http://localhost:8000/api/admin/departments/', {
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/departments/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ export default function AdminDepartmentsPage() {
 
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://localhost:8000/api/admin/departments/${editingDepartment.id}/`, {
+            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/departments/${editingDepartment.id}/`, {
                 method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function AdminDepartmentsPage() {
         setError(null);
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`http://localhost:8000/api/admin/departments/${id}/`, {
+            const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/departments/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrftoken,

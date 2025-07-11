@@ -28,7 +28,7 @@ export default function AdminEmployeeProfileDetailPage() {
             setError(null);
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch(`http://localhost:8000/api/admin/employee-profiles/by-username/${username}/`, {
+                const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/employee-profiles/by-username/${username}/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
