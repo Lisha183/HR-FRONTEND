@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { getCookie } from '../utils/crsf'; 
+import { useAuth } from '../context/AuthContext';
 
 export default function AdminUserApprovalPage() {
     const [pendingUsers, setPendingUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null); 
+    const { csrfToken, fetchCsrfToken, isAuthenticated, role } = useAuth(); 
+
+    const getCsrfHeader = async () => {
+        let currentToken = csrfToken;
+        if (!currentToken) {
+            console.log("AdminUserApprovalPage: CSRF token missing, attempting to fetch.");
+            currentToken = await fetchCsrfToken();
+        }
+        if (!currentToken) {
+            setError("CSRF token not available. Cannot perform action.");
+            console.error("AdminUserApprovalPage: Failed to get CSRF token.");
+            return null;
+        }
+        return currentToken;
+    };
 
     const fetchPendingUsers = async () => {
         setLoading(true);
         setError(null);
         setMessage(null); 
         try {
-            const csrfToken = getCookie('csrftoken');
+            const token = await getCsrfHeader();
+            if (!token) return;
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/pending-approval/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
+                    'X-CSRFToken': token,
                 },
                 credentials: 'include',
             });
@@ -39,19 +55,27 @@ export default function AdminUserApprovalPage() {
     };
 
     useEffect(() => {
-        fetchPendingUsers();
-    }, []);
+        if (isAuthenticated && csrfToken) { 
+            fetchPendingUsers();
+        } else if (!isAuthenticated && !loading) {
+
+            setError("You must be logged in to view this page.");
+            setLoading(false);
+        }
+    }, [isAuthenticated, csrfToken]); 
+
+
 
     const handleApproveUser = async (userId) => {
         setMessage(null); 
         setError(null);  
         try {
-            const csrfToken = getCookie('csrftoken');
+            const token = await getCsrfHeader();
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/users/${userId}/approve/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
+                    'X-CSRFToken': token,
                 },
                 body: JSON.stringify({ is_approved: true }),
                 credentials: 'include',
