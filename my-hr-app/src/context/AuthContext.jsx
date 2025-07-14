@@ -12,8 +12,9 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     const fetchUserDetails = async () => {
-        try {
-            const response = await fetch('https://hr-backend-xs34.onrender.com/api/user/me/', {
+        try {const API_BASE_URL = "https://hr-backend-xs34.onrender.com"; // your Render backend URL
+
+            const response = await fetch(`${API_BASE_URL}/api/user/me/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

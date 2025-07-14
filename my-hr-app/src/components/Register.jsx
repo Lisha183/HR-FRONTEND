@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getCookie } from "../utils/crsf";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -23,7 +24,11 @@ export default function Register() {
     try {
       const response = await fetch("https://hr-backend-xs34.onrender.com/api/register/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"), // ✅ correct now
+
+         },
+        
         body: JSON.stringify(formData),
         credentials: "include",
       });
