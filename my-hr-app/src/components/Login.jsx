@@ -14,20 +14,7 @@ export default function Login() {
   //     credentials: "include",
   //   });
   // }, []);
-  useEffect(() => {
-    async function fetchCSRF() {
-      try {
-        const res = await fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
-          method: "GET",
-          credentials: "include", // 👈 super important to get the cookie
-        });
-        console.log("CSRF set headers:", res.headers);
-      } catch (err) {
-        console.error("Failed to fetch CSRF cookie:", err);
-      }
-    }
-    fetchCSRF();
-  }, []);
+
   
 
   const handleChange = (e) => {
@@ -35,54 +22,30 @@ export default function Login() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setError(null);
 
-    try {
-        const csrfToken = getCookie("csrftoken");
+    // This is the ONLY place where login logic is initiated in this component.
+    // Call the loginUser function from AuthContext, passing username and password.
+    // This function handles the actual API call and CSRF token management internally.
+    const result = await loginUser(formData.username, formData.password);
 
-        const response = await fetch("https://hr-backend-xs34.onrender.com/api/login/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,
-            },
-            body: JSON.stringify(formData),
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-        console.log("Login response:", data);
-
-        if (response.ok) {
-            loginUser(data); 
-
-            console.log(`Attempting to navigate to dashboard for role: ${data.role}`);
-            if (data.role === "employee") {
-              navigate ("/employee-dashboard");
-            } else if (data.role === "admin") {
-              navigate ("/admin-dashboard");
-            } else {
-              setError("Unknown role. Please contact support.");
-            }
-            
+    if (result.success) {
+        // Login was successful. AuthContext has updated global state.
+        // The useEffect above (or logic inside AuthContext's loginUser) should handle navigation.
+        console.log("Login successful, redirection handled by AuthContext or useEffect.");
+        // No explicit navigate call here as it's handled by AuthContext or the useEffect above.
+    } else {
+        // Display error from AuthContext
+        if (result.error === "Your account is pending approval by an administrator.") {
+            setError("Your account is pending approval by an an administrator. Please wait for an HR manager to approve your account.");
         } else {
-            if (response.status === 403 && data.detail === "Your account is pending approval by an administrator.") {
-                setError("Your account is pending approval by an administrator. Please wait for an HR manager to approve your account.");
-            } else if (data.detail) {
-                setError(data.detail);
-            } else if (data.non_field_errors && data.non_field_errors.length > 0) {
-                setError(data.non_field_errors[0]);
-            } else {
-                setError("Login failed. Please check your credentials.");
-            }
-            console.error('Login error:', data);
+            // General login error or network error from AuthContext
+            setError(result.error);
         }
-    } catch (err) {
-        console.error("Network error during login:", err);
-        setError("Network error. Could not connect to the server.");
     }
   };
+
 
   return (
     <div className="login-container">
