@@ -147,7 +147,8 @@
 //         </div>
 //     );
 //}
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // Added useCallback
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminUserApprovalPage() {
@@ -156,6 +157,7 @@ export default function AdminUserApprovalPage() {
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null); 
     const { csrfToken, fetchCsrfToken, isAuthenticated, role } = useAuth(); 
+    const hasFetchedRef = useRef(false);
 
     // Add this log to see initial state from AuthContext
     useEffect(() => {
@@ -218,22 +220,15 @@ export default function AdminUserApprovalPage() {
         }
     }, [getCsrfHeader]); // Dependency for useCallback
 
-    useEffect(() => {
-        console.log("AdminUserApprovalPage: useEffect for fetching users triggered.");
-        console.log("AdminUserApprovalPage: isAuthenticated (in useEffect):", isAuthenticated);
-        console.log("AdminUserApprovalPage: csrfToken (in useEffect):", csrfToken); // Still logging for visibility
 
-        if (isAuthenticated) { // <--- KEY CHANGE HERE: ONLY check isAuthenticated
+    useEffect(() => {
+        if (isAuthenticated && !hasFetchedRef.current) {
             console.log("AdminUserApprovalPage: User is authenticated. Calling fetchPendingUsers.");
             fetchPendingUsers();
-        } else if (!isAuthenticated && !loading) {
-            console.log("AdminUserApprovalPage: Condition NOT met (!isAuthenticated). Setting error.");
-            setError("You must be logged in to view this page.");
-            setLoading(false);
+            hasFetchedRef.current = true;
         }
-        // Removed the 'else if (isAuthenticated && !csrfToken)' since fetchPendingUsers will handle it
-    }, [isAuthenticated, loading, fetchPendingUsers]); // Dependencies: isAuthenticated, loading, fetchPendingUsers
-
+    }, [isAuthenticated, fetchPendingUsers]);
+    
 
     const handleApproveUser = async (userId) => {
         setMessage(null); 
@@ -257,8 +252,7 @@ export default function AdminUserApprovalPage() {
             if (response.ok) {
                 setPendingUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
                 setMessage(`User approved successfully!`);
-                // Re-fetch pending users to update the list if needed
-                fetchPendingUsers(); 
+               
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Failed to approve user.');
