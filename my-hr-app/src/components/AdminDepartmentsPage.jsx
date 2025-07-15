@@ -34,7 +34,7 @@ export default function AdminDepartmentsPage() {
     const [newDepartmentName, setNewDepartmentName] = useState('');
     const [newDepartmentDescription, setNewDepartmentDescription] = useState('');
     const [editingDepartment, setEditingDepartment] = useState(null); 
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken  } = useAuth();
     const [pendingDeleteId, setPendingDeleteId] = useState(null);
     
 
@@ -45,19 +45,22 @@ export default function AdminDepartmentsPage() {
             navigate('/login');
             return;
         }
-        fetchDepartments();
-    }, [isAuthenticated, user, navigate]);
+        if (csrfToken) {
+            fetchDepartments();
+          }
+        
+       
+    }, [isAuthenticated, user,csrfToken, navigate]);
 
     const fetchDepartments = async () => {
         setLoading(true);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/departments/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 credentials: 'include',
             });
@@ -86,12 +89,11 @@ export default function AdminDepartmentsPage() {
         setMessage(null);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/departments/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({ name: newDepartmentName, description: newDepartmentDescription }),
                 credentials: 'include',
@@ -120,12 +122,11 @@ export default function AdminDepartmentsPage() {
         if (!editingDepartment) return;
 
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/departments/${editingDepartment.id}/`, {
                 method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({ name: editingDepartment.name, description: editingDepartment.description }),
                 credentials: 'include',
@@ -155,11 +156,10 @@ export default function AdminDepartmentsPage() {
         setMessage(null);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/departments/${id}/`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 credentials: 'include',
             });
