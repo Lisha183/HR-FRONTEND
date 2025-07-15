@@ -218,7 +218,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, role, loginUser, logout, loadingAuth }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, role, loginUser, logout, loadingAuth,csrfToken,
+          fetchCsrfToken      }}>
             {children}
         </AuthContext.Provider>
     );
