@@ -105,7 +105,6 @@ export default function AdminSelfAssessmentReviewForm({ assessmentId, onBack }) 
         throw new Error(errorMessage);
       }
   
-      // On successful update, navigate back to management page and trigger refresh
       onBack();
   
     } catch (err) {

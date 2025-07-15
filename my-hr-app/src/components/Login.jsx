@@ -25,22 +25,16 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    // This is the ONLY place where login logic is initiated in this component.
-    // Call the loginUser function from AuthContext, passing username and password.
-    // This function handles the actual API call and CSRF token management internally.
+
     const result = await loginUser(formData.username, formData.password);
 
     if (result.success) {
-        // Login was successful. AuthContext has updated global state.
-        // The useEffect above (or logic inside AuthContext's loginUser) should handle navigation.
+
         console.log("Login successful, redirection handled by AuthContext or useEffect.");
-        // No explicit navigate call here as it's handled by AuthContext or the useEffect above.
     } else {
-        // Display error from AuthContext
         if (result.error === "Your account is pending approval by an administrator.") {
             setError("Your account is pending approval by an an administrator. Please wait for an HR manager to approve your account.");
         } else {
-            // General login error or network error from AuthContext
             setError(result.error);
         }
     }

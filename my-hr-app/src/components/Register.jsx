@@ -25,7 +25,7 @@ export default function Register() {
       const response = await fetch("https://hr-backend-xs34.onrender.com/api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"), // ✅ correct now
+          "X-CSRFToken": getCookie("csrftoken"), 
 
          },
         
