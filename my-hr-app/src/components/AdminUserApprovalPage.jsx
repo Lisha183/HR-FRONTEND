@@ -146,7 +146,8 @@
 //             </div>
 //         </div>
 //     );
-// }import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+//}
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminUserApprovalPage() {
