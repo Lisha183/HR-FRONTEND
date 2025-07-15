@@ -166,21 +166,17 @@ export default function AdminUserApprovalPage() {
         console.log("AdminUserApprovalPage: Initial csrfToken (from useAuth):", csrfToken);
     }, []); // This runs only once on mount
 
-    const getCsrfHeader = useCallback(async () => { // Wrapped in useCallback
-        let currentToken = csrfToken;
-        if (!currentToken) {
-            console.log("AdminUserApprovalPage (getCsrfHeader): CSRF token missing in state, attempting to fetch.");
-            currentToken = await fetchCsrfToken(); // Fetch it if not available
-        }
-        if (!currentToken) {
-            setError("CSRF token not available. Cannot perform action.");
-            console.error("AdminUserApprovalPage (getCsrfHeader): Failed to get CSRF token.");
+    const getCsrfHeader = () => {
+        const match = document.cookie.match(/(^|;) ?csrftoken=([^;]+)/);
+        if (match) {
+            return match[2];
+        } else {
+            setError("CSRF token not found in cookies.");
+            console.error("getCsrfHeader: No CSRF token in cookies.");
             return null;
         }
-        console.log("AdminUserApprovalPage (getCsrfHeader): Returning token:", currentToken);
-        return currentToken;
-    }, [csrfToken, fetchCsrfToken]); // Dependencies for useCallback
-
+    };
+    
     const fetchPendingUsers = useCallback(async () => { // Wrapped in useCallback
         console.log("AdminUserApprovalPage: fetchPendingUsers called.");
         setLoading(true);
@@ -234,7 +230,7 @@ export default function AdminUserApprovalPage() {
         setMessage(null); 
         setError(null);  
         try {
-            const token = await getCsrfHeader();
+            const token =  getCsrfHeader();
             if (!token) { // Ensure token exists before proceeding
                 setError("CSRF token not available. Cannot approve user.");
                 return;
