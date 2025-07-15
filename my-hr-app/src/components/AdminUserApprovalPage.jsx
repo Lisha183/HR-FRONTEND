@@ -146,8 +146,7 @@
 //             </div>
 //         </div>
 //     );
-// }
-import React, { useState, useEffect } from 'react';
+// }import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminUserApprovalPage() {
@@ -164,7 +163,7 @@ export default function AdminUserApprovalPage() {
         console.log("AdminUserApprovalPage: Initial csrfToken (from useAuth):", csrfToken);
     }, []); // This runs only once on mount
 
-    const getCsrfHeader = async () => {
+    const getCsrfHeader = useCallback(async () => { // Wrapped in useCallback
         let currentToken = csrfToken;
         if (!currentToken) {
             console.log("AdminUserApprovalPage (getCsrfHeader): CSRF token missing in state, attempting to fetch.");
@@ -177,9 +176,9 @@ export default function AdminUserApprovalPage() {
         }
         console.log("AdminUserApprovalPage (getCsrfHeader): Returning token:", currentToken);
         return currentToken;
-    };
+    }, [csrfToken, fetchCsrfToken]); // Dependencies for useCallback
 
-    const fetchPendingUsers = async () => {
+    const fetchPendingUsers = useCallback(async () => { // Wrapped in useCallback
         console.log("AdminUserApprovalPage: fetchPendingUsers called.");
         setLoading(true);
         setError(null);
@@ -216,24 +215,23 @@ export default function AdminUserApprovalPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [getCsrfHeader]); // Dependency for useCallback
 
     useEffect(() => {
         console.log("AdminUserApprovalPage: useEffect for fetching users triggered.");
         console.log("AdminUserApprovalPage: isAuthenticated (in useEffect):", isAuthenticated);
-        console.log("AdminUserApprovalPage: csrfToken (in useEffect):", csrfToken);
+        console.log("AdminUserApprovalPage: csrfToken (in useEffect):", csrfToken); // Still logging for visibility
 
-        if (isAuthenticated && csrfToken) { 
-            console.log("AdminUserApprovalPage: Condition met (isAuthenticated && csrfToken). Calling fetchPendingUsers.");
+        if (isAuthenticated) { // <--- KEY CHANGE HERE: ONLY check isAuthenticated
+            console.log("AdminUserApprovalPage: User is authenticated. Calling fetchPendingUsers.");
             fetchPendingUsers();
         } else if (!isAuthenticated && !loading) {
             console.log("AdminUserApprovalPage: Condition NOT met (!isAuthenticated). Setting error.");
             setError("You must be logged in to view this page.");
             setLoading(false);
-        } else if (isAuthenticated && !csrfToken) {
-             console.log("AdminUserApprovalPage: Authenticated but CSRF token not yet available. Waiting or re-fetching by AuthContext.");
         }
-    }, [isAuthenticated, csrfToken, loading, fetchPendingUsers]); // Added 'loading' and 'fetchPendingUsers' to dependencies
+        // Removed the 'else if (isAuthenticated && !csrfToken)' since fetchPendingUsers will handle it
+    }, [isAuthenticated, loading, fetchPendingUsers]); // Dependencies: isAuthenticated, loading, fetchPendingUsers
 
 
     const handleApproveUser = async (userId) => {
@@ -258,6 +256,8 @@ export default function AdminUserApprovalPage() {
             if (response.ok) {
                 setPendingUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
                 setMessage(`User approved successfully!`);
+                // Re-fetch pending users to update the list if needed
+                fetchPendingUsers(); 
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Failed to approve user.');
