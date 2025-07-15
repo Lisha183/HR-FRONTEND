@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { getCookie } from '../utils/crsf'; // You can remove or comment this out now if not used elsewhere
 
 export const AuthContext = createContext(null);
 
@@ -9,24 +8,22 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [role, setRole] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
-    const [csrfToken, setCsrfToken] = useState(null); // <--- NEW: State for CSRF token
+    const [csrfToken, setCsrfToken] = useState(null); 
     const navigate = useNavigate();
 
-    const API_BASE_URL = "https://hr-backend-xs34.onrender.com"; // your Render backend URL
+    const API_BASE_URL = "https://hr-backend-xs34.onrender.com"; 
 
-    // <--- NEW FUNCTION: To fetch the CSRF token from your Django backend
     const fetchCsrfToken = async () => {
         try {
-            // Use the correct API endpoint you mapped in urls.py (e.g., /api/csrf/)
             const response = await fetch(`${API_BASE_URL}/api/csrf/`, {
                 method: 'GET',
-                credentials: 'include', // Important to ensure session cookie is sent/received
+                credentials: 'include',
             });
             if (response.ok) {
                 const data = await response.json();
                 console.log("Fetched CSRF token:", data.csrfToken);
-                setCsrfToken(data.csrfToken); // Store the fetched token
-                return data.csrfToken; // Return it for immediate use if needed
+                setCsrfToken(data.csrfToken);
+                return data.csrfToken;
             } else {
                 console.error("Failed to fetch CSRF token:", response.status);
                 setCsrfToken(null);
@@ -42,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     const fetchUserDetails = async () => {
         let currentCsrfToken = csrfToken;
         if (!currentCsrfToken) {
-            currentCsrfToken = await fetchCsrfToken(); // Fetch if not already available
+            currentCsrfToken = await fetchCsrfToken(); 
             if (!currentCsrfToken) {
                 console.warn("AuthContext: Could not get CSRF token for session check. Aborting user details fetch.");
                 setLoadingAuth(false);
@@ -55,7 +52,7 @@ export const AuthProvider = ({ children }) => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': currentCsrfToken, // <--- MODIFIED: Use the fetched token
+                    'X-CSRFToken': currentCsrfToken, 
                 },
                 credentials: 'include',
             });
@@ -134,8 +131,7 @@ export const AuthProvider = ({ children }) => {
         }
     }, [user, isAuthenticated, role, navigate]);
 
-    // <--- MODIFIED LOGINUSER FUNCTION: Now makes API call and uses fetched token
-    const loginUser = async (username, password) => { // Accepts username and password
+    const loginUser = async (username, password) => { 
         let tokenToUse = csrfToken;
 
         if (!tokenToUse) {
@@ -143,7 +139,7 @@ export const AuthProvider = ({ children }) => {
             tokenToUse = await fetchCsrfToken();
             if (!tokenToUse) {
                 console.error("AuthContext: Failed to obtain CSRF token for login.");
-                return { success: false, error: "Failed to obtain CSRF token." }; // Return error status
+                return { success: false, error: "Failed to obtain CSRF token." }; 
             }
         } else {
             console.log("AuthContext: Reusing existing CSRF token for login.");
@@ -154,29 +150,28 @@ export const AuthProvider = ({ children }) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': tokenToUse, // Use the fetched token
+                    'X-CSRFToken': tokenToUse, 
                 },
                 credentials: 'include',
-                body: JSON.stringify({ username, password }), // Send username and password
+                body: JSON.stringify({ username, password }),
             });
 
-            const data = await response.json(); // Always parse response to get details
+            const data = await response.json(); 
 
             if (response.ok) {
-                // Update local AuthContext state
                 setUser(data);
                 setIsAuthenticated(true);
                 setRole(data.role);
                 setLoadingAuth(false);
                 console.log('Login successful.');
-                return { success: true, user: data }; // Return success status and user data
+                return { success: true, user: data }; 
             } else {
                 console.error('Login failed:', data.detail || data.non_field_errors?.[0] || "Unknown error");
-                return { success: false, error: data.detail || data.non_field_errors?.[0] || "Login failed." }; // Return error status
+                return { success: false, error: data.detail || data.non_field_errors?.[0] || "Login failed." }; 
             }
         } catch (error) {
             console.error('Network error during login:', error);
-            return { success: false, error: "Network error. Could not connect to the server." }; // Return network error
+            return { success: false, error: "Network error. Could not connect to the server." };
         }
     };
 
