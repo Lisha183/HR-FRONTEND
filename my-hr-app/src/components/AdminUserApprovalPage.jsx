@@ -154,7 +154,6 @@
 //         </div>
 //     );
 // }
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -168,8 +167,8 @@ export default function AdminUserApprovalPage() {
 
     useEffect(() => {
         console.log("AdminUserApprovalPage: Component mounted.");
-        console.log("AdminUserApprovalPage: Initial isAuthenticated (from useAuth):", isAuthenticated);
-        console.log("AdminUserApprovalPage: Initial csrfToken (from useAuth):", csrfToken);
+        console.log("AdminUserApprovalPage: Initial isAuthenticated:", isAuthenticated);
+        console.log("AdminUserApprovalPage: Initial csrfToken:", csrfToken);
     }, []);
 
     const fetchPendingUsers = useCallback(async () => { 
@@ -192,7 +191,7 @@ export default function AdminUserApprovalPage() {
                 return;
             }
 
-            console.log("AdminUserApprovalPage: Fetching pending users with token:", token);
+            console.log("Fetching pending users with token:", token);
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/pending-approval/', {
                 method: 'GET',
                 headers: {
@@ -204,16 +203,16 @@ export default function AdminUserApprovalPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("AdminUserApprovalPage: Pending users fetched successfully:", data);
+                console.log("Pending users fetched successfully:", data);
                 setPendingUsers(data);
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Failed to fetch pending users.');
-                console.error('AdminUserApprovalPage: Failed to fetch pending users:', errorData);
+                console.error('Failed to fetch pending users:', errorData);
             }
         } catch (err) {
             setError('Network error while fetching pending users.');
-            console.error('AdminUserApprovalPage: Network error:', err);
+            console.error('Network error:', err);
         } finally {
             setLoading(false);
         }
@@ -229,7 +228,7 @@ export default function AdminUserApprovalPage() {
                     await fetchCsrfToken();
                 }
 
-                console.log("AdminUserApprovalPage: User is authenticated. Calling fetchPendingUsers.");
+                console.log("User is authenticated. Calling fetchPendingUsers.");
                 fetchPendingUsers();
                 hasFetchedRef.current = true;
             } catch (err) {
@@ -282,13 +281,8 @@ export default function AdminUserApprovalPage() {
         }
     };
 
-    if (loading) {
-        return <p className="loading-message">Loading pending users...</p>;
-    }
-
-    if (error) {
-        return <p className="error-message">Error: {error}</p>;
-    }
+    if (loading) return <p className="loading-message">Loading pending users...</p>;
+    if (error) return <p className="error-message">Error: {error}</p>;
 
     return (
         <div className="user-approval-page-wrapper">
