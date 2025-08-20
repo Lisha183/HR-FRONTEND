@@ -153,8 +153,7 @@
 //             </div>
 //         </div>
 //     );
-// }
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+// }import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminUserApprovalPage() {
@@ -167,8 +166,8 @@ export default function AdminUserApprovalPage() {
 
     useEffect(() => {
         console.log("AdminUserApprovalPage: Component mounted.");
-        console.log("AdminUserApprovalPage: Initial isAuthenticated:", isAuthenticated);
-        console.log("AdminUserApprovalPage: Initial csrfToken:", csrfToken);
+        console.log("Initial isAuthenticated:", isAuthenticated);
+        console.log("Initial csrfToken:", csrfToken);
     }, []);
 
     const fetchPendingUsers = useCallback(async () => { 
