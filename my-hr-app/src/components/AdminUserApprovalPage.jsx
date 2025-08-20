@@ -163,7 +163,7 @@ export default function AdminUserApprovalPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null); 
-    const { csrfToken, fetchCsrfToken, isAuthenticated, role } = useAuth(); 
+    const { csrfToken, fetchCsrfToken, isAuthenticated } = useAuth(); 
     const hasFetchedRef = useRef(false);
 
     useEffect(() => {
@@ -172,29 +172,26 @@ export default function AdminUserApprovalPage() {
         console.log("AdminUserApprovalPage: Initial csrfToken (from useAuth):", csrfToken);
     }, []);
 
-    const getCsrfHeader = () => {
-        const match = document.cookie.match(/(^|;) ?csrftoken=([^;]+)/);
-        if (match) {
-            return match[2];
-        } else {
-            setError("CSRF token not found in cookies.");
-            console.error("getCsrfHeader: No CSRF token in cookies.");
-            return null;
-        }
-    };
-    
     const fetchPendingUsers = useCallback(async () => { 
-        console.log("AdminUserApprovalPage: fetchPendingUsers called.");
         setLoading(true);
         setError(null);
         setMessage(null); 
+
         try {
-            const token = csrfToken || getCsrfHeader(); // Use token from AuthContext first
+            let token = csrfToken;
             if (!token) {
-                console.error("AdminUserApprovalPage: Aborting fetchPendingUsers because token is null.");
+                console.log("Fetching CSRF token before fetching pending users...");
+                await fetchCsrfToken();
+                token = csrfToken;
+            }
+
+            if (!token) {
+                console.error("CSRF token not available, aborting fetchPendingUsers.");
+                setError("CSRF token unavailable. Cannot fetch pending users.");
                 setLoading(false);
                 return;
             }
+
             console.log("AdminUserApprovalPage: Fetching pending users with token:", token);
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/users/pending-approval/', {
                 method: 'GET',
@@ -220,25 +217,16 @@ export default function AdminUserApprovalPage() {
         } finally {
             setLoading(false);
         }
-    }, [csrfToken]); 
-
+    }, [csrfToken, fetchCsrfToken]); 
 
     useEffect(() => {
         const initFetch = async () => {
             if (!isAuthenticated || hasFetchedRef.current) return;
 
             try {
-                // Ensure CSRF token is fetched from backend
                 if (!csrfToken) {
-                    console.log("Fetching CSRF token before fetching pending users...");
+                    console.log("Fetching CSRF token before initializing pending users...");
                     await fetchCsrfToken();
-                }
-
-                const token = csrfToken || getCsrfHeader(); // fallback
-                if (!token) {
-                    console.error("CSRF token still not available, aborting fetchPendingUsers.");
-                    setError("CSRF token unavailable. Cannot fetch pending users.");
-                    return;
                 }
 
                 console.log("AdminUserApprovalPage: User is authenticated. Calling fetchPendingUsers.");
@@ -253,19 +241,16 @@ export default function AdminUserApprovalPage() {
         initFetch();
     }, [isAuthenticated, csrfToken, fetchCsrfToken, fetchPendingUsers]);
     
-
     const handleApproveUser = async (userId) => {
         setMessage(null); 
         setError(null);  
 
         try {
-            let token = csrfToken || getCsrfHeader();
-
-            // Fetch CSRF token if it's not yet available
+            let token = csrfToken;
             if (!token) {
                 console.log("Fetching CSRF token before approving user...");
                 await fetchCsrfToken();
-                token = csrfToken || getCsrfHeader();
+                token = csrfToken;
             }
 
             if (!token) {
