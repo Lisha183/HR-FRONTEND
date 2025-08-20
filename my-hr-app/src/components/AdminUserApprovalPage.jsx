@@ -176,13 +176,8 @@ export default function AdminUserApprovalPage() {
         setMessage(null); 
 
         try {
-            let token = csrfToken;
-            if (!token) {
-                console.log("Fetching CSRF token before fetching pending users...");
-                await fetchCsrfToken();
-                token = csrfToken;
-            }
-
+            // Use returned token from fetchCsrfToken if csrfToken is not available
+            let token = csrfToken || await fetchCsrfToken();
             if (!token) {
                 console.error("CSRF token not available, aborting fetchPendingUsers.");
                 setError("CSRF token unavailable. Cannot fetch pending users.");
@@ -222,13 +217,8 @@ export default function AdminUserApprovalPage() {
             if (!isAuthenticated || hasFetchedRef.current) return;
 
             try {
-                if (!csrfToken) {
-                    console.log("Fetching CSRF token before initializing pending users...");
-                    await fetchCsrfToken();
-                }
-
                 console.log("User is authenticated. Calling fetchPendingUsers.");
-                fetchPendingUsers();
+                await fetchPendingUsers();
                 hasFetchedRef.current = true;
             } catch (err) {
                 console.error("Error initializing pending users fetch:", err);
@@ -237,20 +227,14 @@ export default function AdminUserApprovalPage() {
         };
 
         initFetch();
-    }, [isAuthenticated, csrfToken, fetchCsrfToken, fetchPendingUsers]);
-    
+    }, [isAuthenticated, fetchPendingUsers]);
+
     const handleApproveUser = async (userId) => {
         setMessage(null); 
         setError(null);  
 
         try {
-            let token = csrfToken;
-            if (!token) {
-                console.log("Fetching CSRF token before approving user...");
-                await fetchCsrfToken();
-                token = csrfToken;
-            }
-
+            const token = csrfToken || await fetchCsrfToken();
             if (!token) {
                 setError("CSRF token not available. Cannot approve user.");
                 return;
