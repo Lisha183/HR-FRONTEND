@@ -257,12 +257,22 @@ export default function AdminUserApprovalPage() {
     const handleApproveUser = async (userId) => {
         setMessage(null); 
         setError(null);  
+
         try {
-            const token = csrfToken || getCsrfHeader();
+            let token = csrfToken || getCsrfHeader();
+
+            // Fetch CSRF token if it's not yet available
+            if (!token) {
+                console.log("Fetching CSRF token before approving user...");
+                await fetchCsrfToken();
+                token = csrfToken || getCsrfHeader();
+            }
+
             if (!token) {
                 setError("CSRF token not available. Cannot approve user.");
                 return;
             }
+
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/users/${userId}/approve/`, {
                 method: 'PATCH',
                 headers: {
@@ -276,7 +286,6 @@ export default function AdminUserApprovalPage() {
             if (response.ok) {
                 setPendingUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
                 setMessage(`User approved successfully!`);
-               
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Failed to approve user.');
