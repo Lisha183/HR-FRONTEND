@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getCookie } from '../utils/crsf';
 
 
 export default function AdminEmployeeProfileDetailPage() {
     const { username } = useParams(); 
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, fetchCsrfToken } = useAuth();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
 
     useEffect(() => {
         if (!isAuthenticated || (user && user.role !== 'admin')) {
@@ -27,12 +27,13 @@ export default function AdminEmployeeProfileDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                const csrftoken = getCookie('csrftoken');
+            const token = await fetchCsrfToken();
+            if (!token) throw new Error("CSRF token unavailable.");
                 const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/employee-profiles/by-username/${username}/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken,
+                        'X-CSRFToken': token,
                     },
                     credentials: 'include',
                 });
