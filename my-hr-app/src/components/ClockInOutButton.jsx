@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getCookie } from '../utils/crsf';
 
 const ClockInOutButton = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken } = useAuth(); 
     const [status, setStatus] = useState('unknown'); 
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
@@ -23,12 +22,11 @@ const ClockInOutButton = () => {
         setMessage('');
         setIsError(false);
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/attendance/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 credentials: 'include',
             });
@@ -59,12 +57,11 @@ const ClockInOutButton = () => {
         setIsError(false);
         setLoading(true);
         try {
-            const csrftoken = getCookie('csrftoken');
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/attendance/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({ record_type: actionType }),
                 credentials: 'include',

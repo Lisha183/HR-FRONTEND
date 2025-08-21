@@ -27,7 +27,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
     const effectiveId = assessmentId ||null;   
     const isEditMode = !!effectiveId;
 
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user,csrfToken } = useAuth();
     const navigate = useNavigate()
 ;
     const initialFormData = {
@@ -59,7 +59,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
             }
 
             try {
-                const csrftoken = getCookie('csrftoken');
+                const csrftoken = csrfToken;
                 const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/self-assessments/${effectiveId}/`, {
                     method: 'GET',
                     headers: {
@@ -118,7 +118,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
                 setError(null);
                 setMessage(null);
                 try {
-                    const csrfToken = getCookie('csrftoken');
+                const csrftoken = csrfToken;
                     const res = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/self-assessments/?quarter_number=${formData.quarter_number}&year=${formData.year}`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
@@ -210,7 +210,7 @@ export default function EmployeeSelfAssessmentForm({assessmentId, onUpdateSucces
 
         try {
             setLoading(true);
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             let url = 'https://hr-backend-xs34.onrender.com/api/employee/self-assessments/';
             let method = 'POST';
 

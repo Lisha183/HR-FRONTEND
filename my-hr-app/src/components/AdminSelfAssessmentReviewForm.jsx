@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCookie } from '../utils/crsf';
 
 export default function AdminSelfAssessmentReviewForm({ assessmentId, onBack }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, csrfToken } = useAuth();
   const navigate = useNavigate();
 
   const [assessment, setAssessment] = useState(null);
@@ -78,7 +78,12 @@ export default function AdminSelfAssessmentReviewForm({ assessmentId, onBack }) 
     setMessage(null);
   
     try {
-      const csrftoken = getCookie('csrftoken');
+      const csrfResponse = await fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
+      method: "GET",
+      credentials: "include",
+    });
+    const csrfData = await csrfResponse.json();
+    const csrftoken = csrfData.csrfToken;
   
       const payload = {
         hr_rating: formData.hr_rating ? parseInt(formData.hr_rating) : null,

@@ -5199,8 +5199,8 @@ table tr:hover {
   background-color: #f0f4f7; 
   color: #555;
   font-weight: 600;
-  padding: 15px;
-  text-align: left;
+  min-width: 130px;
+  text-align: center;
   border-bottom: 1px solid #e0e0e0;
 }
 

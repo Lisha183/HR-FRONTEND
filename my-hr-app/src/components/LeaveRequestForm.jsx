@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getCookie } from '../utils/crsf'; 
 
 const LeaveRequestForm = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken } = useAuth(); 
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -22,9 +21,6 @@ const LeaveRequestForm = () => {
             navigate('/login');
             return;
         }
-        fetch("https://hr-backend-xs34.onrender.com/api/csrf/", {
-            credentials: "include",
-        });
     }, [isAuthenticated, user, navigate]);
 
     const handleChange = (e) => {
@@ -62,18 +58,19 @@ const LeaveRequestForm = () => {
             employee: user.id, 
         };
 
-        const csrftoken = getCookie('csrftoken');
-
         try {
-            const response = await fetch('https://hr-backend-xs34.onrender.comapi/employee/leave-requests/', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
-                },
-                body: JSON.stringify(dataToSend), 
-                credentials: 'include',
-            });
+            const response = await fetch(
+                'https://hr-backend-xs34.onrender.com/api/employee/leave-requests/',
+                { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken, 
+                    },
+                    body: JSON.stringify(dataToSend), 
+                    credentials: 'include',
+                }
+            );
 
             if (response.ok) {
                 setMessage('Leave request submitted successfully!');

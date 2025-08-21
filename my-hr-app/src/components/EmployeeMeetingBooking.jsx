@@ -19,7 +19,7 @@ export default function EmployeeMeetingBooking() {
     const [filterSelfAssessmentId, setFilterSelfAssessmentId] = useState('');
     const [tempHrUsername, setTempHrUsername] = useState('');
     const [tempSelfAssessmentId, setTempSelfAssessmentId] = useState('');
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -39,7 +39,7 @@ export default function EmployeeMeetingBooking() {
     useEffect(() => {
         const fetchHrReviewers = async () => {
             try {
-                const csrftoken = getCookie('csrftoken');
+                const csrftoken = csrfToken;
                 const response = await fetch('https://hr-backend-xs34.onrender.com/api/hr-users/', { 
                     method: 'GET',
                     headers: {
@@ -70,7 +70,7 @@ export default function EmployeeMeetingBooking() {
         setLoading(true);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             let url = 'https://hr-backend-xs34.onrender.com/api/employee/meeting-slots/';
             const queryParams = new URLSearchParams();
 
@@ -110,8 +110,8 @@ export default function EmployeeMeetingBooking() {
         setLoading(true); 
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
-            const response = await fetch('https://hr-backend-xs34.onrender.comapi/employee/my-booked-slots/', {
+            const csrftoken = csrfToken;
+            const response = await fetch('https://hr-backend-xs34.onrender.com/api/employee/my-booked-slots/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ export default function EmployeeMeetingBooking() {
 
     const executeBookSlot = async (slotId, slotToBook) => {
         try {
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             const requestBody = {
                 is_booked: true,
                 booked_by_employee: user.id,
@@ -204,7 +204,7 @@ setBookedSlots(prev => [...prev, { ...slotToBook, is_booked: true, booked_by_emp
     };
     const executeUnbookSlot = async (slotId , slotToUnbook) => {
         try {
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/meeting-slots/${slotId}/unbook/`, {
                 method: 'PATCH',
                 headers: {
@@ -320,7 +320,6 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                         <th>Date</th>
                                         <th>Start Time</th>
                                         <th>End Time</th>
-                                        {/* <th>Self-Assessment</th> */}
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -332,8 +331,7 @@ setAvailableSlots(prev => [...prev, { ...slotToUnbook, is_booked: false }]);
                                             <td data-label="Date">{slot.date}</td>
                                             <td data-label="Start Time">{slot.start_time}</td>
                                             <td data-label="End Time">{slot.end_time}</td>
-                                            {/* <td data-label="Self-Assessment">{slot.self_assessment_id }
-                                            </td> */}
+                                            
                                             <td data-label="Actions">
                                                 <button onClick={() => handleUnbookSlot(slot.id)} className="meeting-booking-cancel-button">
                                                     Unbook

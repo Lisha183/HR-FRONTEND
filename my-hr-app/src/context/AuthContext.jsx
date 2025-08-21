@@ -176,41 +176,40 @@ export const AuthProvider = ({ children }) => {
     };
 
 
-    const logout = async () => {
-        let currentCsrfToken = csrfToken;
-        if (!currentCsrfToken) {
-            currentCsrfToken = await fetchCsrfToken();
-            if (!currentCsrfToken) {
-                console.error("AuthContext: Could not get CSRF token for logout. Aborting logout.");
-                return;
-            }
+ const logout = async () => {
+    try {
+        // ALWAYS fetch fresh CSRF token from cookie
+        const freshCsrfToken = await fetchCsrfToken();
+        if (!freshCsrfToken) {
+            console.error("AuthContext: Could not get CSRF token for logout. Aborting logout.");
+            return;
         }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/logout/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': currentCsrfToken,
-                },
-                credentials: 'include',
-            });
+        const response = await fetch(`${API_BASE_URL}/api/logout/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': freshCsrfToken,
+            },
+            credentials: 'include',
+        });
 
-            if (response.ok) {
-                setUser(null);
-                setIsAuthenticated(false);
-                setRole(null);
-                setLoadingAuth(false);
-                console.log('Successfully logged out.');
-                navigate('/login');
-            } else {
-                const errorData = await response.json();
-                console.error('Logout failed:', errorData.detail);
-            }
-        } catch (error) {
-            console.error('Network error during logout:', error);
+        if (response.ok) {
+            setUser(null);
+            setIsAuthenticated(false);
+            setRole(null);
+            setLoadingAuth(false);
+            console.log('Successfully logged out.');
+            navigate('/login');
+        } else {
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            console.error('Logout failed:', errorData.detail);
         }
-    };
+    } catch (error) {
+        console.error('Network error during logout:', error);
+    }
+};
+
 
     return (
         <AuthContext.Provider value={{ user, isAuthenticated, role, loginUser, logout, loadingAuth,csrfToken,

@@ -8,7 +8,7 @@ export default function EmployeeLeaveHistory() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null); 
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken} = useAuth();
     const navigate = useNavigate();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [confirmModalMessage, setConfirmModalMessage] = useState('');
@@ -27,7 +27,7 @@ export default function EmployeeLeaveHistory() {
         setError(null);
         setMessage(null); 
         try {
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/employee/leave-requests/', {
                 method: 'GET',
                 headers: {
@@ -74,7 +74,7 @@ export default function EmployeeLeaveHistory() {
         setMessage(null);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
+            const csrftoken = csrfToken;
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/employee/leave-requests/${id}/`, {
                 method: 'PATCH',
                 headers: {
