@@ -12,7 +12,7 @@ export default function AdminLeaveManagement() {
     const [pendingDeleteId, setPendingDeleteId] = useState(null);
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, csrfToken,  fetchCsrfToken  } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,12 +27,14 @@ export default function AdminLeaveManagement() {
         setLoading(true);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
+            let token = csrfToken || await fetchCsrfToken();
+            if (!token) throw new Error("No CSRF token available.");
+
             const response = await fetch('https://hr-backend-xs34.onrender.com/api/admin/leave-requests/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 credentials: 'include',
             });
@@ -56,12 +58,14 @@ export default function AdminLeaveManagement() {
         setMessage(null);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
+            let token = csrfToken || await fetchCsrfToken();
+            if (!token) throw new Error("No CSRF token available.");
+
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/leave-requests/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({ status: newStatus, comments: comments }),
                 credentials: 'include',
@@ -84,11 +88,13 @@ export default function AdminLeaveManagement() {
         setMessage(null);
         setError(null);
         try {
-            const csrftoken = getCookie('csrftoken');
+            let token = csrfToken || await fetchCsrfToken();
+            if (!token) throw new Error("No CSRF token available.");
+
             const response = await fetch(`https://hr-backend-xs34.onrender.com/api/admin/leave-requests/${id}/`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': csrfToken,
                 },
                 credentials: 'include',
             });
